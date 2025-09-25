@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>MinzBook — Inicio</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<header class="header">
+  <div class="nav">
+    <a class="brand" href="index.html">
+      <img src="img/logo.png" alt="MinzBook">
+      <div><strong>MinzBook</strong><br><small class="subtitle">Libros de la mas ALTISIMA calidad.</small></div>
+    </a>
+    <nav class="menu">
+      <a href="productos.html">Tienda</a>
+      <a href="Contacto.html">Contacto</a>
+      <a href="autor.html">Autor</a>
+      <a href="carrito.html">Carrito <span class="badge" data-cart-count style="display:none">0</span></a>
+      <span data-userbox></span>
+    </nav>
+  </div>
+</header>
+<main class="container">
+  <section class="hero">
+    <div>
+      <h1>Bienvenid@ a MinzBook</h1>
+      <p class="subtitle">Tienda de libros.</p>
+      <div style="display:flex; gap:12px; margin-top:12px">
+        <a class="btn primary" href="productos.html">Ver libros</a>
+        <a class="btn ghost" href="Contacto.html">Contacto</a>
+      </div>
+    </div>
+    <div class="panel"><img src="img/libro1.jpg" alt="" style="width:100%; border-radius:16px"></div>
+  </section>
+ <section class="grid cols-2 index-grande" style="align-items:center; margin-top:30px">
+  <div>
+    <img class="big-cover" src="img/libro4.jpg" alt="La ciencia de la victoria">
+  </div>
+  <div>
+    <h2>La ciencia de la victoria</h2>
+    <p><strong>Autor:</strong> GABOXYIYI</p>
+    <p><strong>Género:</strong> Superación</p>
+    <p><strong>ISBN:</strong> 978-00-00004</p>
+    <p><strong>Edicion:</strong> Premium absoluto, libro mas vendido</p>
+    <p><strong style="font-size:1.4rem">$444.444</strong></p>
+    <a href="producto.html?id=4" class="btn warn">Ver más</a>
+  </div>
+</section>
+
+
+  <section class="section">
+    <div class="titlebar"><h2>Libros destacados</h2><a class="btn" href="productos.html">Ver todo</a></div>
+    <div class="grid cols-3" id="destacados"></div>
+  </section>
+</main>
+<footer class="footer"><div class="inner"><span>© 2025 MinzBook</span><span class="subtitle">Hecho por Lucas y Matias :3 🍃</span></div></footer>
+<script src="js/app.js"></script>
+</body>
+</html>
