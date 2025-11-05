@@ -21,7 +21,7 @@ export default function ContactPage() {
       date: new Date().toLocaleString(),
     };
 
-    // 💾 Guarda en localStorage en la misma clave que lee soporte
+    // Guarda en localStorage en la misma clave que lee soporte
     const existing = JSON.parse(localStorage.getItem("contactMessages") || "[]");
     localStorage.setItem("contactMessages", JSON.stringify([...existing, newMessage]));
 

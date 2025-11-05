@@ -5,7 +5,6 @@ import type { User, Role } from "@/types";
 const LS_USERS = "mb_users";
 
 function hash(pwd: string) {
-  // DEMO: hash simple (NO usar en producción)
   return btoa(encodeURIComponent(pwd));
 }
 

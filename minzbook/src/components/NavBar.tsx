@@ -4,7 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 export default function NavBar() {
   const { user, logout } = useAuth();
 
-  // ✅ Generar avatar automático (iniciales) si el usuario está logeado
+  // Generar avatar automático (iniciales) si el usuario está logeado
   const avatarUrl = user
     ? `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(
         user.name || user.email

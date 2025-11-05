@@ -6,7 +6,7 @@ import BookDetail from '@/pages/BookDetail'
 import Cart from '@/pages/Cart'
 import Author from '@/pages/Author'
 import Contact from '@/pages/Contact'
-import Auth from '@/pages/Auth' // ← único Auth
+import Auth from '@/pages/Auth' // 
 
 export default function AppRouter() {
   return (

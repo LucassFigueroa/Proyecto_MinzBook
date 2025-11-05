@@ -36,7 +36,7 @@ export default function AppRouter() {
           <Route path="/book/:isbn" element={<BookDetail />} />
           <Route path="/auth" element={<Auth />} />
 
-          {/* 🔐 Ruta de soporte protegida */}
+          {/* Ruta de soporte protegida */}
           <Route
             path="/support"
             element={

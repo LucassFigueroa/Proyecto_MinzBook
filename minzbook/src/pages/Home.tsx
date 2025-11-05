@@ -28,7 +28,7 @@ export default function Home() {
           {/* Imagen controlada */}
           <div className="col-12 col-lg-5 d-flex justify-content-center">
             <img
-              src={heroBook.image}              // asegúrate que points a /img/libro1.jpg en /public
+              src={heroBook.image}              // 
               alt={heroBook.title}
               className="hero-img"
               style={{ maxWidth: 480, width: "200%", height: "auto" }} // tope duro anti-estirones

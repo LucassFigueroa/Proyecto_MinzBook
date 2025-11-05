@@ -5,7 +5,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  passwordHash: string; // demo: hash simple
+  passwordHash: string; // 
   role: Role;
 }
 
@@ -16,7 +16,7 @@ export interface Review {
   rating: number;
   comment: string;
   createdAt: string;
-  deletedReason?: string; // 👈 nuevo campo
+  deletedReason?: string; // 
 }
 
 export interface ContactMessage {
