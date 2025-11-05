@@ -1,0 +1,234 @@
+/* ===========================
+   🌿 MinzBook Custom Styles
+   =========================== */
+
+/* Paleta y variables base */
+:root {
+  --nav-h: 64px;
+  --color-verde: #1c3d2e;
+  --color-fondo: #fdecd4;
+  --color-arenoso: #fef6ea;
+  --color-naranja: #ff8c2e;
+}
+
+/* Ajustes generales */
+body {
+  background-color: var(--color-fondo);
+  padding-top: var(--nav-h);
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  color: var(--color-verde);
+}
+
+/* Navbar fija arriba */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1030;
+  background-color: var(--color-arenoso) !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  height: var(--nav-h);
+}
+
+/* Contenedor general */
+.navbar .container-fluid {
+  padding-left: 18px;
+  padding-right: 18px;
+}
+
+/* Logo */
+.navbar-brand {
+  font-weight: 700;
+  color: var(--color-verde);
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+}
+.navbar-brand img {
+  height: 30px;
+  width: auto;
+  margin-right: 8px;
+}
+
+/* Links del navbar */
+.nav-link {
+  color: #000 !important;
+  margin-left: 10px;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+.nav-link:hover {
+  color: var(--color-verde) !important;
+  text-decoration: underline;
+}
+
+/* Botón ingresar */
+.btn-outline-success {
+  color: var(--color-verde);
+  border-color: var(--color-verde);
+  transition: all 0.2s ease;
+}
+.btn-outline-success:hover {
+  background-color: var(--color-verde);
+  color: white;
+}
+
+/* Ajustes en pantallas pequeñas */
+@media (max-width: 992px) {
+  :root {
+    --nav-h: 56px;
+  }
+  .navbar .container-fluid {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
+
+/* Espaciado para evitar que el contenido quede bajo la barra */
+main {
+  margin-top: calc(var(--nav-h) + 10px);
+}
+
+/* Animación del navbar al hacer scroll */
+.navbar.scrolled {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+/* Imagen principal (Home) */
+.hero-img {
+  max-width: 320px;
+  height: auto;
+  border-radius: 12px;
+  display: block;
+  margin: 0 auto;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+.hero-img:hover {
+  transform: scale(1.03);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+}
+
+/* En pantallas grandes */
+@media (min-width: 992px) {
+  .hero-img {
+    max-width: 380px;
+  }
+}
+
+/* En pantallas pequeñas */
+@media (max-width: 768px) {
+  .hero-img {
+    max-width: 250px;
+  }
+}
+
+/* Botones del Home */
+.btn-primary {
+  background-color: var(--color-verde);
+  border: none;
+  color: #fff;
+}
+.btn-primary:hover {
+  background-color: #155f47;
+}
+
+.btn-outline-secondary {
+  border-color: var(--color-verde);
+  color: var(--color-verde);
+}
+.btn-outline-secondary:hover {
+  background-color: var(--color-verde);
+  color: white;
+}
+
+/* Footer */
+footer {
+  text-align: center;
+  font-size: 14px;
+  color: #444;
+  padding: 1rem 0;
+  background: #fef6ea;
+  border-top: 1px solid #e8d7b9;
+}
+/* BOTONES "Ver" VERDES */
+.btn-outline-success {
+  border-color: var(--verde-minzbook);
+  color: var(--verde-minzbook);
+  transition: all 0.2s ease;
+}
+
+.btn-outline-success:hover,
+.btn-outline-success:focus {
+  background-color: var(--verde-minzbook);
+  color: #a70101;
+  border-color: var(--verde-minzbook);
+}
+.btn-outline-success {
+  border-color: var(--verde-minzbook);
+  color: var(--verde-minzbook);
+}
+
+.btn-outline-success:hover {
+  background-color: var(--verde-minzbook);
+  color: #fff;
+}
+/* Forzar que los "Ver" (outline primary) sean verdes */
+.btn-outline-primary {
+  border-color: var(--color-verde);
+  color: var(--color-verde);
+  transition: all 0.2s ease;
+}
+.btn-outline-primary:hover,
+.btn-outline-primary:focus {
+  background-color: var(--color-verde);
+  color: #fff;
+  border-color: var(--color-verde);
+}
+/* Arreglo: que los botones verdes no se vuelvan transparentes al presionarlos */
+.btn-outline-success,
+.btn-outline-success:active,
+.btn-outline-success:focus,
+.btn-outline-success:visited {
+  border-color: var(--color-verde);
+  color: var(--color-verde);
+  background-color: transparent;
+}
+
+.btn-outline-success:hover,
+.btn-outline-success:active:hover,
+.btn-outline-success:focus:hover {
+  background-color: var(--color-verde) !important;
+  color: #fff !important;
+  border-color: var(--color-verde) !important;
+}
+
+.btn-outline-success:active,
+.btn-outline-success:focus {
+  background-color: var(--color-verde) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+/* Botón verde oscuro */
+.btn-success {
+  background-color: #155f47; /* tono más oscuro */
+  border-color: #155f47;
+  color: #fff;
+  transition: all 0.2s ease;
+}
+
+.btn-success:hover,
+.btn-success:focus {
+  background-color: var(--color-verde); /* tu tono verde principal */
+  border-color: var(--color-verde);
+  color: #fff;
+}
+/* Color verde para los precios */
+.price {
+  color: var(--color-verde) !important;
+  font-weight: 600;
+  font-size: 1.1rem;
+}

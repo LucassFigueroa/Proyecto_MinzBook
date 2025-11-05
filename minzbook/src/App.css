@@ -1,0 +1,37 @@
+/* Espaciado del contenido principal bajo la navbar */
+main {
+  padding: 1.5rem 0;
+}
+
+/* Pequeños ajustes reutilizables */
+.place-items-center {
+  place-items: center;
+  /* Imagen destacada en Home */
+.hero-img {
+  max-width: 320px;      /* ancho máximo de la imagen */
+  height: auto;
+  border-radius: 10px;
+  display: block;
+  margin: 0 auto;
+  transition: transform 0.2s ease;
+}
+
+.hero-img:hover {
+  transform: scale(1.02);
+}
+
+/* En pantallas grandes */
+@media (min-width: 992px) {
+  .hero-img {
+    max-width: 380px;
+  }
+}
+
+/* En pantallas pequeñas (para que no tape texto) */
+@media (max-width: 768px) {
+  .hero-img {
+    max-width: 250px;
+  }
+}
+
+}

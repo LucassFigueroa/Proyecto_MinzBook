@@ -1,0 +1,21 @@
+:root {
+  --verde-minzbook: #006b4f;
+  --cream: #fffaf3;
+  --dark: #1a1a1a;
+}
+
+html, body {
+  background-color: #f6e4ce;
+  color: var(--dark);
+  margin: 0;
+  padding: 0;
+}
+
+a {
+  text-decoration: none;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
