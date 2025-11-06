@@ -6,6 +6,7 @@ import Contact from "@/pages/Contact";
 import Support from "@/pages/Support";
 import Auth from "@/pages/Auth";
 import BookDetail from "@/pages/BookDetail";
+import Cart from "@/pages/Cart";
 import NavBar from "@/components/NavBar";
 import { useAuth } from "@/context/AuthContext";
 
@@ -13,7 +14,6 @@ function SupportGuard({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const email =
     user?.email?.toLowerCase() ||
-    // por si tu AuthContext guarda dentro de otro objeto
     (user as any)?.user?.email?.toLowerCase() ||
     "";
 
@@ -34,9 +34,9 @@ export default function AppRouter() {
           <Route path="/author" element={<Author />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/book/:isbn" element={<BookDetail />} />
+          <Route path="/cart" element={<Cart />} />
           <Route path="/auth" element={<Auth />} />
 
-          {/* Ruta de soporte protegida */}
           <Route
             path="/support"
             element={
@@ -46,7 +46,6 @@ export default function AppRouter() {
             }
           />
 
-          {/* 404 */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

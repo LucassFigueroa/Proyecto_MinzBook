@@ -1,10 +1,11 @@
 import { NavLink } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { useCart } from "@/context/CartContext";
 
 export default function NavBar() {
   const { user, logout } = useAuth();
+  const { count } = useCart();
 
-  // Generar avatar automático (iniciales) si el usuario está logeado
   const avatarUrl = user
     ? `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(
         user.name || user.email
@@ -14,7 +15,6 @@ export default function NavBar() {
   return (
     <nav className="navbar navbar-expand-lg navbar-light fixed-top">
       <div className="container-fluid">
-        {/* LOGO */}
         <NavLink className="navbar-brand fw-bold" to="/">
           <img
             src="/img/logo.png"
@@ -25,7 +25,6 @@ export default function NavBar() {
           MinzBook
         </NavLink>
 
-        {/* Toggle móvil */}
         <button
           className="navbar-toggler"
           type="button"
@@ -38,7 +37,6 @@ export default function NavBar() {
           <span className="navbar-toggler-icon"></span>
         </button>
 
-        {/* Menú principal */}
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav ms-auto align-items-lg-center gap-2">
             <li className="nav-item">
@@ -65,7 +63,15 @@ export default function NavBar() {
               </NavLink>
             </li>
 
-            {/* Visible solo para el usuario de soporte */}
+            <li className="nav-item">
+              <NavLink
+                to="/cart"
+                className="nav-link fw-semibold d-flex align-items-center"
+              >
+                🛒 Carrito {count > 0 && `(${count})`}
+              </NavLink>
+            </li>
+
             {user?.role === "support" && (
               <li className="nav-item">
                 <NavLink to="/support" className="nav-link fw-semibold">
@@ -74,7 +80,6 @@ export default function NavBar() {
               </li>
             )}
 
-            {/* Usuario autenticado o no */}
             <li className="nav-item ms-lg-3">
               {user ? (
                 <div className="d-flex align-items-center gap-2">
@@ -94,10 +99,7 @@ export default function NavBar() {
 
                   <span
                     className="fw-bold"
-                    style={{
-                      color: "var(--color-verde)",
-                      fontSize: "0.9rem",
-                    }}
+                    style={{ color: "var(--color-verde)", fontSize: "0.9rem" }}
                   >
                     Hola, {user.name}
                   </span>

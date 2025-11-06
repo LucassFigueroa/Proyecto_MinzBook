@@ -13,6 +13,7 @@ type CartContextType = {
   setQty: (id: string, qty: number) => void;
   remove: (id: string) => void;
   total: number;
+  count: number; // total de items en el carrito
 };
 
 const CartContext = createContext<CartContextType | null>(null);
@@ -66,9 +67,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     [items]
   );
 
+  const count = useMemo(() => items.reduce((s, i) => s + i.qty, 0), [items]);
+
   const value = useMemo(
-    () => ({ items, add, setQty, remove, total }),
-    [items, total]
+    () => ({ items, add, setQty, remove, total, count }),
+    [items, total, count]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
