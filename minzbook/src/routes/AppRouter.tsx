@@ -7,6 +7,7 @@ import Support from "@/pages/Support";
 import Auth from "@/pages/Auth";
 import BookDetail from "@/pages/BookDetail";
 import Cart from "@/pages/Cart";
+import Checkout from "@/pages/Checkout"; // 👈 NUEVO
 import NavBar from "@/components/NavBar";
 import { useAuth } from "@/context/AuthContext";
 
@@ -35,6 +36,7 @@ export default function AppRouter() {
           <Route path="/contact" element={<Contact />} />
           <Route path="/book/:isbn" element={<BookDetail />} />
           <Route path="/cart" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} /> {/* 👈 NUEVA RUTA */}
           <Route path="/auth" element={<Auth />} />
 
           <Route

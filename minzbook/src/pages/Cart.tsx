@@ -1,8 +1,9 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
 
 export default function Cart() {
   const { items, setQty, remove, total } = useCart();
+  const navigate = useNavigate(); // 👈 NECESARIO PARA NAVEGAR
 
   return (
     <div className="container container-narrow py-3">
@@ -72,7 +73,12 @@ export default function Cart() {
         >
           Seguir comprando
         </Link>
-        <button className="btn btn-success fw-bold ir-a-pagar-btn">
+
+        {/* 👇 ESTE ES EL BOTÓN NUEVO FUNCIONAL */}
+        <button
+          className="btn btn-success fw-bold ir-a-pagar-btn"
+          onClick={() => navigate("/checkout")}
+        >
           Ir a pagar
         </button>
       </div>
