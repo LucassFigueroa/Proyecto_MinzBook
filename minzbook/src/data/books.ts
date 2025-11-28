@@ -48,5 +48,25 @@ export const books: Book[] = [
     image: "/img/libro4.jpg",
     description:
       "Descubre la mentalidad detrás del éxito, la disciplina y el poder de la constancia para lograr tus metas.",
+  }, 
+  {
+    isbn: "978-00-00008",
+    title: "Mega Man: Official Complete Works",
+    author: "Capcom",
+    genre: "ArtBook",
+    price: 120000,
+    image: "/img/libro5.jpg",
+    description:
+      "Con más de 100 videojuegos a su nombre, Mega Man es uno de los íconos más reconocibles de los videojuegos. Mega Man: Official Complete Works exhibe 20 años de arte de esta serie clásica e incluye diseños de personajes, carátulas, arte promocional y un montón de obras de arte poco comunes. ¡Ningún fan de Mega Man se lo puede perder!",
   },
+  {
+    isbn: "978-00-00009",
+    title: "The Legend of Zelda: Art & Artifacts",
+    author: "Nintendo",
+    genre: "Juegos, Obra ",
+    price: 87500,
+    image: "/img/libro6.jpg",
+    description:
+      "The Legend of Zelda™: Art and Artifacts contiene más de cuatrocientas páginas de ilustraciones completas de los treinta años de historia de The Legend of Zelda™, incluyendo ilustraciones del próximo The Legend of Zelda™: Breath of the Wild. Cada obra maestra está impresa en papel de alta calidad en un formato extragrande para que puedas sumergirte en los detalles de cada pieza. Este libro incluye piezas promocionales raras, carátulas de juegos, ilustraciones para el manual de instrucciones, ilustraciones oficiales de los personajes, sprites, entrevistas con los artistas y mucho, mucho más. The Legend of Zelda™: Art and Artifacts recopila muchas de tus obras maestras favoritas de la legendaria franquicia, así como contenido exclusivo e inédito, presentado en una elegante tapa dura.",
+  }
 ];

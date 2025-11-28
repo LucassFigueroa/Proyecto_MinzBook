@@ -32,7 +32,6 @@ body {
   height: var(--nav-h);
 }
 
-/* Contenedor general */
 .navbar .container-fluid {
   padding-left: 18px;
   padding-right: 18px;
@@ -64,18 +63,7 @@ body {
   text-decoration: underline;
 }
 
-/* Botón ingresar */
-.btn-outline-success {
-  color: var(--color-verde);
-  border-color: var(--color-verde);
-  transition: all 0.2s ease;
-}
-.btn-outline-success:hover {
-  background-color: var(--color-verde);
-  color: white;
-}
-
-/* Ajustes en pantallas pequeñas */
+/* Ajustes móviles */
 @media (max-width: 992px) {
   :root {
     --nav-h: 56px;
@@ -86,47 +74,15 @@ body {
   }
 }
 
-/* Espaciado para evitar que el contenido quede bajo la barra */
+/* Espaciado */
 main {
   margin-top: calc(var(--nav-h) + 10px);
 }
 
-/* Animación del navbar al hacer scroll */
-.navbar.scrolled {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.3s ease;
-}
+/* ===============================
+   🌟 Botones
+   =============================== */
 
-/* Imagen principal (Home) */
-.hero-img {
-  max-width: 320px;
-  height: auto;
-  border-radius: 12px;
-  display: block;
-  margin: 0 auto;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-}
-.hero-img:hover {
-  transform: scale(1.03);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
-}
-
-/* En pantallas grandes */
-@media (min-width: 992px) {
-  .hero-img {
-    max-width: 380px;
-  }
-}
-
-/* En pantallas pequeñas */
-@media (max-width: 768px) {
-  .hero-img {
-    max-width: 250px;
-  }
-}
-
-/* Botones del Home */
 .btn-primary {
   background-color: var(--color-verde);
   border: none;
@@ -145,7 +101,110 @@ main {
   color: white;
 }
 
-/* Footer */
+/* Botones outline verdes */
+.btn-outline-success,
+.btn-outline-primary {
+  border-color: var(--color-verde) !important;
+  color: var(--color-verde) !important;
+}
+
+.btn-outline-success:hover,
+.btn-outline-primary:hover {
+  background-color: var(--color-verde) !important;
+  color: #fff !important;
+}
+
+/* Botón verde sólido */
+.btn-success {
+  background-color: #155f47;
+  border-color: #155f47;
+  color: #fff;
+  transition: all 0.2s ease;
+}
+.btn-success:hover {
+  background-color: var(--color-verde);
+  border-color: var(--color-verde);
+}
+
+/* Precios verdes */
+.price {
+  color: var(--color-verde) !important;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+/* ===============================
+   📚 Portadas de Libros (todas iguales)
+   =============================== */
+
+.book-cover {
+  width: 100% !important;
+  height: 420px !important;
+  object-fit: cover !important;
+  border-radius: 20px !important;
+  display: block !important;
+  background: #ddd;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+
+.book-cover:hover {
+  transform: scale(1.03);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25);
+}
+
+/* Tarjeta */
+.book-card {
+  border-radius: 20px;
+  overflow: hidden;
+  background-color: var(--color-arenoso);
+}
+
+/* ===============================
+   🌟 HERO (libro destacado rotando)
+   =============================== */
+
+.hero-wrapper {
+  position: relative;
+  max-width: 420px;
+  width: 100%;
+}
+
+.hero-img {
+  width: 100% !important;
+  height: 600px !important;      /* MISMO TAMAÑO que book-cover */
+  object-fit: cover !important;  /* recorte perfecto */
+  border-radius: 24px;
+  display: block;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+/* Efecto fade */
+.hero-fade {
+  animation: heroFade 0.8s ease-in-out;
+}
+
+@keyframes heroFade {
+  0% {
+    opacity: 0;
+    transform: scale(1.03);
+    filter: brightness(0.6);
+  }
+  50% {
+    opacity: 0.6;
+    filter: brightness(0.55);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+/* ===============================
+   Footer
+   =============================== */
+
 footer {
   text-align: center;
   font-size: 14px;
@@ -153,82 +212,4 @@ footer {
   padding: 1rem 0;
   background: #fef6ea;
   border-top: 1px solid #e8d7b9;
-}
-/* BOTONES "Ver" VERDES */
-.btn-outline-success {
-  border-color: var(--verde-minzbook);
-  color: var(--verde-minzbook);
-  transition: all 0.2s ease;
-}
-
-.btn-outline-success:hover,
-.btn-outline-success:focus {
-  background-color: var(--verde-minzbook);
-  color: #a70101;
-  border-color: var(--verde-minzbook);
-}
-.btn-outline-success {
-  border-color: var(--verde-minzbook);
-  color: var(--verde-minzbook);
-}
-
-.btn-outline-success:hover {
-  background-color: var(--verde-minzbook);
-  color: #fff;
-}
-/* Forzar que los "Ver" (outline primary) sean verdes */
-.btn-outline-primary {
-  border-color: var(--color-verde);
-  color: var(--color-verde);
-  transition: all 0.2s ease;
-}
-.btn-outline-primary:hover,
-.btn-outline-primary:focus {
-  background-color: var(--color-verde);
-  color: #fff;
-  border-color: var(--color-verde);
-}
-/* Arreglo: que los botones verdes no se vuelvan transparentes al presionarlos */
-.btn-outline-success,
-.btn-outline-success:active,
-.btn-outline-success:focus,
-.btn-outline-success:visited {
-  border-color: var(--color-verde);
-  color: var(--color-verde);
-  background-color: transparent;
-}
-
-.btn-outline-success:hover,
-.btn-outline-success:active:hover,
-.btn-outline-success:focus:hover {
-  background-color: var(--color-verde) !important;
-  color: #fff !important;
-  border-color: var(--color-verde) !important;
-}
-
-.btn-outline-success:active,
-.btn-outline-success:focus {
-  background-color: var(--color-verde) !important;
-  color: #fff !important;
-  box-shadow: none !important;
-}
-/* Botón verde oscuro */
-.btn-success {
-  background-color: #155f47; /* tono más oscuro */
-  border-color: #155f47;
-  color: #fff;
-  transition: all 0.2s ease;
-}
-
-.btn-success:hover,
-.btn-success:focus {
-  background-color: var(--color-verde); /* tu tono verde principal */
-  border-color: var(--color-verde);
-  color: #fff;
-}
-/* Color verde para los precios */
-.price {
-  color: var(--color-verde) !important;
-  font-weight: 600;
-  font-size: 1.1rem;
 }

@@ -7,12 +7,11 @@ export default function BookCard({ book }: { book: Book }) {
   const { add } = useCart();
 
   return (
-    <div className="card h-100 shadow-sm border-0">
+    <div className="card book-card h-100 shadow-sm border-0">
       <img
         src={book.image}
-        className="card-img-top"
+        className="book-cover"
         alt={book.title}
-        style={{ objectFit: "cover", height: "320px" }}
       />
 
       <div className="card-body d-flex flex-column">
@@ -31,7 +30,6 @@ export default function BookCard({ book }: { book: Book }) {
         </div>
 
         <div className="mt-auto d-flex justify-content-between gap-2">
-          {/* Botón Ver */}
           <Link
             className="btn btn-outline-success fw-semibold"
             to={`/book/${book.isbn}`}
@@ -39,7 +37,6 @@ export default function BookCard({ book }: { book: Book }) {
             Ver
           </Link>
 
-          {/* Botón Añadir */}
           <button
             className="btn btn-outline-success fw-semibold"
             onClick={() =>
