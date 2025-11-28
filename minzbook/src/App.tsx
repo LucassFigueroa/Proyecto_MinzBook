@@ -16,7 +16,7 @@ export default function AppRouter() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/catalog" element={<Catalog />} />
-          <Route path="/book/:id" element={<BookDetail />} />
+          <Route path="/book/:isbn" element={<BookDetail />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/author" element={<Author />} />
           <Route path="/contact" element={<Contact />} />

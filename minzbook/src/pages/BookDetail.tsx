@@ -5,11 +5,13 @@ import { useAuth } from "@/context/AuthContext";
 import { addReview, deleteReview, listReviews } from "@/data/reviews";
 import type { Review } from "@/types";
 import { getUsers } from "@/data/users";
+import { useCart } from "@/context/CartContext"; // 👈 NUEVO
 
 export default function BookDetail() {
   const { isbn } = useParams();
   const book = useMemo(() => books.find((b) => b.isbn === isbn), [isbn]);
   const { user } = useAuth();
+  const { add } = useCart(); // 👈 NUEVO
 
   const [reviews, setReviews] = useState<Review[]>([]);
   const [comment, setComment] = useState("");
@@ -31,7 +33,7 @@ export default function BookDetail() {
     );
   }
 
-  function handleAdd() {
+  function handleAddReview() {
     if (!user) return alert("Debes iniciar sesión para dejar una reseña.");
     if (!comment.trim()) return alert("Escribe un comentario.");
 
@@ -83,8 +85,21 @@ export default function BookDetail() {
           </p>
           <h4>${book.price.toLocaleString()}</h4>
           <p className="fw-bold">{book.description}</p>
+
           <div className="d-flex gap-2">
-            <button className="btn btn-success fw-bold">Añadir al carrito</button>
+            <button
+              className="btn btn-success fw-bold"
+              onClick={() =>
+                add({
+                  id: book.isbn,
+                  title: book.title,
+                  price: book.price,
+                })
+              }
+            >
+              Añadir al carrito
+            </button>
+
             <Link to="/catalog" className="btn btn-outline-success fw-bold">
               Seguir comprando
             </Link>
@@ -160,7 +175,7 @@ export default function BookDetail() {
                 />
               </div>
               <div className="col-12 col-md-2 d-grid">
-                <button className="btn btn-primary" onClick={handleAdd}>
+                <button className="btn btn-primary" onClick={handleAddReview}>
                   Publicar
                 </button>
               </div>
