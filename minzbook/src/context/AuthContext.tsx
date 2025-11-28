@@ -1,55 +1,113 @@
-// src/context/AuthContext.tsx
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { createUser, ensureUsersSeeded, findUserByEmail, verifyPassword } from "@/data/users";
-import type { Role, User } from "@/types";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import {
+  AuthResponse,
+  LoginPayload,
+  RegisterPayload,
+  login as apiLogin,
+  register as apiRegister,
+  Role,
+} from "@/api/authApi";
 
-interface AuthCtx {
-  user: User | null;
-  login: (email: string, password: string) => Promise<void>;
+type AuthUser = {
+  id: number;
+  name: string;
+  email: string;
+  role: Role;
+};
+
+type AuthContextType = {
+  user: AuthUser | null;
+  token: string | null;
+  isAuthenticated: boolean;
+  login: (payload: LoginPayload) => Promise<void>;
+  register: (payload: RegisterPayload) => Promise<void>;
   logout: () => void;
-  register: (name: string, email: string, password: string) => Promise<void>;
   hasRole: (role: Role) => boolean;
-}
+};
 
-const AuthContext = createContext<AuthCtx | null>(null);
-const LS_CURRENT = "mb_current_user";
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: {children: React.ReactNode}) {
-  const [user, setUser] = useState<User | null>(null);
+const LS_KEY = "mb_auth";
 
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+
+  // cargar sesión guardada
   useEffect(() => {
-    ensureUsersSeeded();
-    const raw = localStorage.getItem(LS_CURRENT);
-    if (raw) setUser(JSON.parse(raw));
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as { user: AuthUser; token: string };
+      setUser(parsed.user);
+      setToken(parsed.token);
+    } catch {
+      /* ignore */
+    }
   }, []);
 
-  const login = async (email: string, password: string) => {
-    const u = findUserByEmail(email);
-    if (!u || !verifyPassword(u, password)) throw new Error("Credenciales inválidas");
-    setUser(u);
-    localStorage.setItem(LS_CURRENT, JSON.stringify(u));
+  const persist = (data: { user: AuthUser | null; token: string | null }) => {
+    setUser(data.user);
+    setToken(data.token);
+
+    if (data.user && data.token) {
+      localStorage.setItem(LS_KEY, JSON.stringify(data));
+    } else {
+      localStorage.removeItem(LS_KEY);
+    }
   };
 
-  const register = async (name: string, email: string, password: string) => {
-    const u = createUser(name, email, password, "user");
-    setUser(u);
-    localStorage.setItem(LS_CURRENT, JSON.stringify(u));
+  const login = async (payload: LoginPayload) => {
+    const res = await apiLogin(payload);
+    persist({
+      user: {
+        id: res.id,
+        name: res.name,
+        email: res.email,
+        role: res.role,
+      },
+      token: res.token,
+    });
+  };
+
+  const register = async (payload: RegisterPayload) => {
+    const res = await apiRegister(payload);
+    persist({
+      user: {
+        id: res.id,
+        name: res.name,
+        email: res.email,
+        role: res.role,
+      },
+      token: res.token,
+    });
   };
 
   const logout = () => {
-    setUser(null);
-    localStorage.removeItem(LS_CURRENT);
+    persist({ user: null, token: null });
   };
 
-  const hasRole = (role: Role) => !!user && user.role === role;
+  const hasRole = (role: Role) => user?.role === role;
 
-  const value = useMemo(() => ({ user, login, logout, register, hasRole }), [user]);
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        isAuthenticated: !!user && !!token,
+        login,
+        register,
+        logout,
+        hasRole,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+};
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-export function useAuth() {
+export const useAuth = (): AuthContextType => {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth debe usarse dentro de <AuthProvider>");
+  if (!ctx) throw new Error("useAuth debe usarse dentro de AuthProvider");
   return ctx;
-}
+};

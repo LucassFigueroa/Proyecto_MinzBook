@@ -1,0 +1,44 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-AuthservicewebApplication<authserviceweb>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "minzbookweb.authserviceweb.AuthservicewebApplication",
+            "projectName": "authserviceweb",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-CatalogservicewebApplication<catalogserviceweb>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "minzbookweb.catalogserviceweb.CatalogservicewebApplication",
+            "projectName": "catalogserviceweb",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-ReviewservicewebApplication<reviewserviceweb>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "minzbookweb.reviewserviceweb.ReviewservicewebApplication",
+            "projectName": "reviewserviceweb",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-SupportservicewebApplication<supportserviceweb>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "minzbookweb.supportserviceweb.SupportservicewebApplication",
+            "projectName": "supportserviceweb",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
