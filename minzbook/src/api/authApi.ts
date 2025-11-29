@@ -30,9 +30,7 @@ async function handleResponse(res: Response) {
     if (contentType.includes("application/json")) {
       data = JSON.parse(text);
     }
-  } catch {
-    // ignorar parseo
-  }
+  } catch {}
 
   if (!res.ok) {
     console.error("❌ Error Auth API:", res.status, text);
@@ -44,8 +42,7 @@ async function handleResponse(res: Response) {
     throw new Error(text || `Error HTTP ${res.status}`);
   }
 
-  if (data !== null) return data;
-  return text;
+  return data !== null ? data : text;
 }
 
 export async function login(payload: LoginPayload): Promise<AuthResponse> {
@@ -62,11 +59,7 @@ export async function register(payload: RegisterPayload): Promise<AuthResponse> 
   const res = await fetch(`${API.auth}/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      name: payload.name,
-      email: payload.email,
-      password: payload.password,
-    }), // 👈 AQUÍ VA EL JSON CORRECTO
+    body: JSON.stringify(payload),
   });
 
   return handleResponse(res);

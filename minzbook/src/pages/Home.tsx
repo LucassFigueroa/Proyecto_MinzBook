@@ -1,116 +1,60 @@
 // src/pages/Home.tsx
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { books } from "@/data/books";
-import BookCard from "@/components/BookCard";
-import { loadFromLS } from "@/data/storage";
-import type { Review } from "@/types";
+import { featuredBooks } from "@/data/books";
 
-const LS_REVIEWS = "mb_reviews";
-
-type TopAuthor = {
-  name: string;
-  count: number;
-};
+// Definimos el tipo para el libro destacado, basado en la estructura de tus datos.
+type Book = typeof featuredBooks[0];
 
 export default function Home() {
-  // Libros destacados (puedes usar slice si quieres solo algunos)
-  const featured = books;
+  const [heroBook, setHeroBook] = useState<Book | null>(null);
 
-  // --- HERO que rota libros ---
-  const [heroIndex, setHeroIndex] = useState(0);
-  const heroBook = featured[heroIndex] ?? featured[0];
-
+  // Este efecto se encarga de la rotación de libros
   useEffect(() => {
-    if (featured.length <= 1) return;
+    if (featuredBooks.length === 0) return;
 
-    const id = window.setInterval(() => {
-      setHeroIndex((prev) => (prev + 1) % featured.length);
-    }, 5000); // cambia cada 5 segundos
+    // Establece el primer libro inmediatamente
+    setHeroBook(featuredBooks[0]);
 
-    return () => window.clearInterval(id);
-  }, [featured.length]);
+    let currentIndex = 0;
+    const intervalId = setInterval(() => {
+      currentIndex = (currentIndex + 1) % featuredBooks.length;
+      setHeroBook(featuredBooks[currentIndex]);
+    }, 4000); // Cambia de libro cada 4 segundos
 
-  // Pre-cargar todas las imágenes del hero
-  useEffect(() => {
-    featured.forEach((b) => {
-      const img = new Image();
-      img.src = b.image;
-    });
-  }, [featured]);
-
-  // --- AUTORES DESTACADOS según reseñas buenas ---
-  const [topAuthors, setTopAuthors] = useState<TopAuthor[]>([]);
-
-  useEffect(() => {
-    const all = loadFromLS<Review[]>(LS_REVIEWS, []);
-
-    if (!all.length) {
-      setTopAuthors([]);
-      return;
-    }
-
-    const counts: Record<string, number> = {};
-
-    all.forEach((r) => {
-      // solo reseñas buenas y no eliminadas
-      if (r.rating >= 4 && !r.deletedReason) {
-        const book = books.find((b) => b.isbn === r.bookId);
-        if (!book) return;
-        counts[book.author] = (counts[book.author] || 0) + 1;
-      }
-    });
-
-    const arr = Object.entries(counts)
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 3); // top 3
-
-    setTopAuthors(arr);
+    // Limpia el intervalo cuando el componente se desmonta para evitar fugas de memoria
+    return () => clearInterval(intervalId);
   }, []);
 
   return (
-    <div className="container container-narrow py-3">
-      {/* HERO */}
+    <div className="container py-4">
+      {/* Hero / bienvenida */}
       <section className="mb-5">
-        <div className="row align-items-center g-4">
-          {/* Texto */}
+        <div className="p-4 p-md-5 rounded shadow-sm row align-items-center" style={{ backgroundColor: "#fffaf3" }}>
           <div className="col-12 col-lg-7">
-            <h1
-              className="display-4 fw-bold mb-2"
-              style={{ color: "var(--color-verde)" }}
-            >
-              Bienvenid@ a <br /> MinzBook
+            <h1 className="mb-3" style={{ color: "var(--verde-minzbook)" }}>
+              Bienvenido a MinzBook
             </h1>
-            <p className="text-muted mb-3">Tienda de libros.</p>
-
+            <p className="lead mb-3">
+              Explora, descubre y compra libros únicos de autores increíbles.
+              Publica tus propias obras o encuentra tu próxima lectura favorita.
+            </p>
             <div className="d-flex flex-wrap gap-2">
-              <Link to="/catalog" className="btn btn-primary">
-                Ver libros
-              </Link>
-              <Link to="/contact" className="btn btn-outline-secondary">
-                Contacto
+              <Link to="/catalog" className="btn btn-success">
+                Ver catálogo
               </Link>
               <Link to="/author" className="btn btn-outline-success">
-                Quiero ser un Autor!
+                Publicar un libro
               </Link>
             </div>
           </div>
-
           {/* Imagen rotando libros destacados con efecto */}
           {heroBook && (
-            <div className="col-12 col-lg-5 d-flex justify-content-center">
+            <div className="col-12 col-lg-5 d-flex justify-content-center mt-4 mt-lg-0">
               <div className="hero-wrapper text-center">
-                <img
-                  src={heroBook.image}
-                  alt={heroBook.title}
-                  className="hero-img hero-fade"
-                />
-
+                <img src={heroBook.image} alt={heroBook.title} className="hero-img hero-fade" />
                 <div className="mt-3">
-                  <span className="badge bg-success mb-1">
-                    Libro destacado
-                  </span>
+                  <span className="badge bg-success mb-1">Libro destacado</span>
                   <div className="fw-semibold" style={{ color: "var(--dark)" }}>
                     {heroBook.title}
                   </div>
@@ -121,51 +65,71 @@ export default function Home() {
         </div>
       </section>
 
-      {/* LIBROS DESTACADOS */}
-      <section className="mb-3 d-flex align-items-center justify-content-between">
-        <h2 className="h3 m-0" style={{ color: "var(--color-verde)" }}>
+      {/* Libros destacados */}
+      <section className="mb-5">
+        <h2 className="mb-3" style={{ color: "var(--verde-minzbook)" }}>
           Libros destacados
         </h2>
-        <Link to="/catalog" className="btn btn-outline-primary btn-sm">
-          Ver todo
-        </Link>
-      </section>
 
-      <section className="row g-3">
-        {featured.map((b) => (
-          <div key={b.isbn} className="col-12 col-md-6 col-lg-4">
-            <BookCard book={b} />
-          </div>
-        ))}
-      </section>
+        <div className="row g-4">
+          {featuredBooks.map((book) => (
+            <div className="col-md-4" key={book.id}>
+              <div className="card h-100 shadow-sm">
+                <img
+                  src={book.image}
+                  alt={book.title}
+                  className="card-img-top"
+                  style={{ objectFit: "cover", height: 260 }}
+                />
 
-      {/* AUTORES DESTACADOS */}
-      {topAuthors.length > 0 && (
-        <>
-          <hr className="my-5" />
-
-          <section className="mb-3 d-flex align-items-center justify-content-between">
-            <h2 className="h3 m-0" style={{ color: "var(--color-verde)" }}>
-              Autores destacados
-            </h2>
-          </section>
-
-          <section className="row g-3">
-            {topAuthors.map((a) => (
-              <div key={a.name} className="col-12 col-md-4">
-                <div className="card h-100 p-3 shadow-sm border-0">
-                  <h5 className="mb-1">{a.name}</h5>
-                  <p className="text-muted mb-2">
-                    {a.count} reseña
-                    {a.count === 1 ? "" : "s"} positiva
+                <div className="card-body d-flex flex-column">
+                  <p className="text-uppercase small text-muted mb-1">
+                    {book.author}
                   </p>
-                  <span className="badge bg-success">Autor destacado</span>
+                  <h5 className="card-title">{book.title}</h5>
+                  <p className="text-muted small mb-2">
+                    {book.genre} · ISBN {book.isbn}
+                  </p>
+
+                  <p className="card-text small flex-grow-1">
+                    {book.description.substring(0, 130)}...
+                  </p>
+
+                  <div className="d-flex justify-content-between align-items-center mt-2">
+                    <span className="fw-bold">
+                      ${book.price.toLocaleString("es-CL")}
+                    </span>
+
+                    <div className="d-flex gap-2">
+                      <Link
+                        to={`/books/${book.id}`}
+                        className="btn btn-sm btn-outline-success"
+                      >
+                        Ver
+                      </Link>
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-success"
+                        onClick={() =>
+                          alert(`🛒 (demo) "${book.title}" agregado al carrito`)
+                        }
+                      >
+                        Añadir
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
-            ))}
-          </section>
-        </>
-      )}
+            </div>
+          ))}
+
+          {featuredBooks.length === 0 && (
+            <p className="text-center mt-3">
+              No hay libros destacados por el momento.
+            </p>
+          )}
+        </div>
+      </section>
     </div>
   );
 }

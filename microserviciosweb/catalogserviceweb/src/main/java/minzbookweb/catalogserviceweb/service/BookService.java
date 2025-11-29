@@ -1,7 +1,6 @@
 package minzbookweb.catalogserviceweb.service;
 
 import minzbookweb.catalogserviceweb.dto.BookRequest;
-import minzbookweb.catalogserviceweb.dto.BookResponse;
 import minzbookweb.catalogserviceweb.model.Book;
 import minzbookweb.catalogserviceweb.repository.BookRepository;
 import org.springframework.stereotype.Service;
@@ -11,59 +10,73 @@ import java.util.List;
 @Service
 public class BookService {
 
-    private final BookRepository repo;
+    private final BookRepository repository;
 
-    public BookService(BookRepository repo) {
-        this.repo = repo;
+    public BookService(BookRepository repository) {
+        this.repository = repository;
     }
 
+    // Obtener todos
     public List<Book> getAll() {
-        return repo.findAll();
+        return repository.findAll();
     }
 
-    public Book getByIsbn(String isbn) {
-        return repo.findByIsbn(isbn)
+    // Obtener por ID (ideal para React)
+    public Book getById(Long id) {
+        return repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Libro no encontrado"));
     }
 
+    // Crear
     public Book create(BookRequest dto) {
-        Book b = new Book();
-        b.setIsbn(dto.getIsbn());
-        b.setTitle(dto.getTitle());
-        b.setAuthor(dto.getAuthor());
-        b.setGenre(dto.getGenre());
-        b.setPrice(dto.getPrice());
-        b.setCoverUrl(dto.getCoverUrl());
-        b.setDescription(dto.getDescription());
-        b.setPostedByUserId(dto.getPostedByUserId());
-        return repo.save(b);
+        Book book = new Book();
+
+        book.setIsbn(dto.getIsbn());
+        book.setTitle(dto.getTitle());
+        book.setAuthor(dto.getAuthor());
+        book.setGenre(dto.getGenre());
+        book.setPrice(dto.getPrice());
+        book.setCoverUrl(dto.getCoverUrl());   // viene desde /api/upload
+        book.setDescription(dto.getDescription());
+        book.setPostedByUserId(dto.getPostedByUserId());
+
+        return repository.save(book);
     }
 
-    public Book update(String isbn, BookRequest dto) {
-        Book b = getByIsbn(isbn);
-        b.setTitle(dto.getTitle());
-        b.setAuthor(dto.getAuthor());
-        b.setGenre(dto.getGenre());
-        b.setPrice(dto.getPrice());
-        b.setCoverUrl(dto.getCoverUrl());
-        b.setDescription(dto.getDescription());
-        return repo.save(b);
+    // Actualizar por ID
+    public Book update(Long id, BookRequest dto) {
+        Book book = getById(id);
+
+        book.setIsbn(dto.getIsbn());
+        book.setTitle(dto.getTitle());
+        book.setAuthor(dto.getAuthor());
+        book.setGenre(dto.getGenre());
+        book.setPrice(dto.getPrice());
+        book.setCoverUrl(dto.getCoverUrl());
+        book.setDescription(dto.getDescription());
+        book.setPostedByUserId(dto.getPostedByUserId());
+
+        return repository.save(book);
     }
 
-    public void delete(String isbn) {
-        Book b = getByIsbn(isbn);
-        repo.delete(b);
+    // Eliminar
+    public void delete(Long id) {
+        if (!repository.existsById(id)) {
+            throw new RuntimeException("Libro no encontrado");
+        }
+        repository.deleteById(id);
     }
 
+    // Búsquedas
     public List<Book> search(String q) {
-        return repo.findByTitleContainingIgnoreCase(q);
-    }
-
-    public List<Book> byAuthor(String author) {
-        return repo.findByAuthorContainingIgnoreCase(author);
+        return repository.search(q);
     }
 
     public List<Book> byGenre(String genre) {
-        return repo.findByGenreContainingIgnoreCase(genre);
+        return repository.findByGenreContainingIgnoreCase(genre);
+    }
+
+    public List<Book> byAuthor(String author) {
+        return repository.findByAuthorContainingIgnoreCase(author);
     }
 }

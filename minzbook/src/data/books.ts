@@ -1,15 +1,19 @@
-export interface Book {
+// src/data/book.ts
+
+export interface FeaturedBook {
+  id: number;      // 👈 usamos este id para navegar a /books/:id
   isbn: string;
   title: string;
   author: string;
   genre: string;
   price: number;
-  image: string;
+  image: string;   // imagen estática en el front
   description: string;
 }
 
-export const books: Book[] = [
+export const featuredBooks: FeaturedBook[] = [
   {
+    id: 1,
     isbn: "978-00-00001",
     title: "El terror de la jungla",
     author: "SANSER",
@@ -20,6 +24,7 @@ export const books: Book[] = [
       "Una historia de supervivencia en lo más profundo de la selva, donde el miedo se convierte en el peor enemigo.",
   },
   {
+    id: 2,
     isbn: "978-00-00002",
     title: "La ayuda es un beneficio?",
     author: "SKADI",
@@ -30,6 +35,7 @@ export const books: Book[] = [
       "Una reflexión profunda sobre la empatía, la dependencia y el verdadero sentido de ayudar a los demás.",
   },
   {
+    id: 3,
     isbn: "978-00-00003",
     title: "Control de oleadas",
     author: "WERLYB",
@@ -40,6 +46,7 @@ export const books: Book[] = [
       "Guía esencial para mantener el equilibrio entre la acción y la paciencia en un mundo lleno de caos.",
   },
   {
+    id: 4,
     isbn: "978-00-00004",
     title: "La ciencia de la victoria",
     author: "GABOXYIYI",
@@ -48,8 +55,9 @@ export const books: Book[] = [
     image: "/img/libro4.jpg",
     description:
       "Descubre la mentalidad detrás del éxito, la disciplina y el poder de la constancia para lograr tus metas.",
-  }, 
+  },
   {
+    id: 5,
     isbn: "978-00-00008",
     title: "Mega Man: Official Complete Works",
     author: "Capcom",
@@ -57,16 +65,17 @@ export const books: Book[] = [
     price: 120000,
     image: "/img/libro5.jpg",
     description:
-      "Con más de 100 videojuegos a su nombre, Mega Man es uno de los íconos más reconocibles de los videojuegos. Mega Man: Official Complete Works exhibe 20 años de arte de esta serie clásica e incluye diseños de personajes, carátulas, arte promocional y un montón de obras de arte poco comunes. ¡Ningún fan de Mega Man se lo puede perder!",
+      "Con más de 100 videojuegos a su nombre, Mega Man es uno de los íconos más reconocibles de los videojuegos. Este libro exhibe 20 años de arte y diseños oficiales.",
   },
   {
+    id: 6,
     isbn: "978-00-00009",
     title: "The Legend of Zelda: Art & Artifacts",
     author: "Nintendo",
-    genre: "Juegos, Obra ",
+    genre: "Juegos, Obra",
     price: 87500,
     image: "/img/libro6.jpg",
     description:
-      "The Legend of Zelda™: Art and Artifacts contiene más de cuatrocientas páginas de ilustraciones completas de los treinta años de historia de The Legend of Zelda™, incluyendo ilustraciones del próximo The Legend of Zelda™: Breath of the Wild. Cada obra maestra está impresa en papel de alta calidad en un formato extragrande para que puedas sumergirte en los detalles de cada pieza. Este libro incluye piezas promocionales raras, carátulas de juegos, ilustraciones para el manual de instrucciones, ilustraciones oficiales de los personajes, sprites, entrevistas con los artistas y mucho, mucho más. The Legend of Zelda™: Art and Artifacts recopila muchas de tus obras maestras favoritas de la legendaria franquicia, así como contenido exclusivo e inédito, presentado en una elegante tapa dura.",
-  }
+      "Más de 400 páginas de ilustraciones de los 30 años de historia de The Legend of Zelda™, impresas en papel de alta calidad.",
+  },
 ];

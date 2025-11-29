@@ -1,190 +1,189 @@
-import { useParams, Link } from "react-router-dom";
-import { useEffect, useMemo, useState } from "react";
-import { books } from "@/data/books";
+// src/pages/BookDetail.tsx
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { getBookById, Book } from "@/api/booksApi";
+import {
+  getReviewsByBook,
+  createReview,
+  Review,
+  CreateReviewPayload,
+} from "@/api/reviewsApi";
 import { useAuth } from "@/context/AuthContext";
-import { addReview, deleteReview, listReviews } from "@/data/reviews";
-import type { Review } from "@/types";
-import { getUsers } from "@/data/users";
-import { useCart } from "@/context/CartContext"; // 👈 NUEVO
+import { API } from "@/api/baseUrl";
+
+const IMAGE_BASE = API.books.replace("/api/books", "");
 
 export default function BookDetail() {
-  const { isbn } = useParams();
-  const book = useMemo(() => books.find((b) => b.isbn === isbn), [isbn]);
-  const { user } = useAuth();
-  const { add } = useCart(); // 👈 NUEVO
+  const { id } = useParams<{ id: string }>();
+  const bookId = Number(id);
+  const { isAuthenticated } = useAuth();
 
+  const [book, setBook] = useState<Book | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [comment, setComment] = useState("");
-  const [rating, setRating] = useState(5);
-  const [reason, setReason] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // obtener lista de usuarios (para mostrar nombre)
-  const users = getUsers();
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (book) setReviews(listReviews(book.isbn));
-  }, [book]);
+    if (!bookId) return;
 
-  if (!book) {
-    return (
-      <div className="container container-narrow py-3">
-        <p>Libro no encontrado.</p>
-      </div>
-    );
-  }
+    setLoading(true);
+    Promise.all([getBookById(bookId), getReviewsByBook(bookId)])
+      .then(([bookRes, reviewsRes]) => {
+        setBook(bookRes);
+        setReviews(reviewsRes);
+      })
+      .catch((err) =>
+        setError(err.message || "Error al cargar el detalle del libro")
+      )
+      .finally(() => setLoading(false));
+  }, [bookId]);
 
-  function handleAddReview() {
-    if (!user) return alert("Debes iniciar sesión para dejar una reseña.");
-    if (!comment.trim()) return alert("Escribe un comentario.");
+  const handleAddToCart = (book: Book) => {
+    alert(`🛒 (demo) "${book.title}" agregado al carrito`);
+  };
 
-    const r: Review = {
-      id: crypto.randomUUID(),
-      bookId: book.isbn,
-      userId: user.id,
-      rating,
-      comment: comment.trim(),
-      createdAt: new Date().toISOString(),
-    };
-    addReview(r);
-    setReviews(listReviews(book.isbn));
-    setComment("");
-    setRating(5);
-  }
-
-  function handleDelete(id: string) {
-    if (!user || user.role !== "admin") return;
-
-    const motivo = prompt("Motivo del borrado:");
-    if (!motivo) return;
-
-    const all = listReviews(book.isbn);
-    const r = all.find((x) => x.id === id);
-    if (r) {
-      r.deletedReason = motivo;
-      // Guardar reemplazando en localStorage
-      deleteReview(id); // primero borra
-      addReview(r); // vuelve a agregar con motivo marcado
-      setReviews(listReviews(book.isbn));
+  const handleCreateReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bookId) return;
+    if (!comment.trim()) {
+      alert("Escribe un comentario 🙂");
+      return;
     }
-  }
+
+    setSubmitting(true);
+    try {
+      const payload: CreateReviewPayload = {
+        bookId,
+        rating,
+        comment,
+      };
+      const newReview = await createReview(payload);
+      setReviews((prev) => [newReview, ...prev]);
+      setComment("");
+      setRating(5);
+      alert("✅ Reseña creada con éxito");
+    } catch (err: any) {
+      alert(err.message || "Error al crear reseña");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) return <p className="text-center mt-4">Cargando libro...</p>;
+  if (error)
+    return (
+      <p className="text-center mt-4 text-danger">
+        Error: {error}
+      </p>
+    );
+  if (!book) return <p className="text-center mt-4">Libro no encontrado.</p>;
 
   return (
-    <div className="container container-narrow py-3">
-      <div className="row g-4">
-        <div className="col-12 col-md-6">
-          <img
-            src={book.image}
-            alt={book.title}
-            style={{ maxWidth: "420px", width: "100%" }}
-          />
+    <div className="container py-4">
+      {/* Detalle del libro */}
+      <div className="row mb-4">
+        <div className="col-md-4 mb-3">
+          {book.coverUrl && (
+            <img
+              src={`${IMAGE_BASE}${book.coverUrl}`}
+              alt={book.title}
+              className="img-fluid rounded"
+            />
+          )}
         </div>
-        <div className="col-12 col-md-6">
+        <div className="col-md-8">
           <h2>{book.title}</h2>
-          <p>
-            <b>{book.author}</b> · {book.genre} · ISBN {book.isbn}
-          </p>
-          <h4>${book.price.toLocaleString()}</h4>
-          <p className="fw-bold">{book.description}</p>
+          <p className="text-muted">por {book.author}</p>
+          {book.description && <p>{book.description}</p>}
+          <p className="mb-0">Género: {book.genre || "—"}</p>
+          {book.price != null && (
+            <p className="fw-bold mt-2">
+              Precio: ${book.price.toLocaleString("es-CL")}
+            </p>
+          )}
 
-          <div className="d-flex gap-2">
+          {isAuthenticated && (
             <button
-              className="btn btn-success fw-bold"
-              onClick={() =>
-                add({
-                  id: book.isbn,
-                  title: book.title,
-                  price: book.price,
-                })
-              }
+              className="btn btn-success mt-3"
+              onClick={() => handleAddToCart(book)}
             >
               Añadir al carrito
             </button>
-
-            <Link to="/catalog" className="btn btn-outline-success fw-bold">
-              Seguir comprando
-            </Link>
-          </div>
+          )}
         </div>
       </div>
 
-      <hr className="my-4" />
+      <hr />
 
-      <section>
-        <h3 className="mb-3">Reseñas</h3>
+      {/* Reseñas + formulario */}
+      <div className="row">
+        <div className="col-md-6 mb-4">
+          <h4>Reseñas</h4>
+          {reviews.length === 0 && <p>No hay reseñas aún.</p>}
 
-        {reviews.length === 0 && (
-          <p className="text-muted">Aún no hay reseñas. ¡Sé el primero!</p>
-        )}
-
-        <div className="d-flex flex-column gap-2 mb-4">
-          {reviews.map((r) => {
-            const author = users.find((u) => u.id === r.userId);
-            return (
-              <div key={r.id} className="card p-2">
-                <div className="d-flex justify-content-between align-items-center">
-                  <div>
-                    <span className="badge bg-success me-2">{r.rating}★</span>
-                    <span>{r.comment}</span>
-                    <div className="text-muted small">
-                      {author ? author.name : "Usuario desconocido"} –{" "}
-                      {new Date(r.createdAt).toLocaleString()}
-                    </div>
-                    {r.deletedReason && (
-                      <div className="text-danger small mt-1">
-                        Eliminada: {r.deletedReason}
-                      </div>
-                    )}
-                  </div>
-                  {user?.role === "admin" && !r.deletedReason && (
-                    <button
-                      className="btn btn-sm btn-outline-danger"
-                      onClick={() => handleDelete(r.id)}
-                    >
-                      Eliminar
-                    </button>
+          <ul className="list-group">
+            {reviews.map((r) => (
+              <li key={r.id} className="list-group-item">
+                <div className="d-flex justify-content-between">
+                  <strong>{r.rating} ⭐</strong>
+                  {r.fechaCreacion && (
+                    <small className="text-muted">
+                      {new Date(r.fechaCreacion).toLocaleString("es-CL")}
+                    </small>
                   )}
                 </div>
-              </div>
-            );
-          })}
+                <p className="mb-0">{r.comment}</p>
+              </li>
+            ))}
+          </ul>
         </div>
 
-        {user ? (
-          <div className="card p-3">
-            <h5 className="mb-2">Escribe tu reseña</h5>
-            <div className="row g-2">
-              <div className="col-12 col-md-2">
-                <select
-                  className="form-select"
+        <div className="col-md-6">
+          <h4>Agregar reseña</h4>
+
+          {!isAuthenticated && (
+            <p className="text-muted">
+              Debes iniciar sesión para dejar una reseña.
+            </p>
+          )}
+
+          {isAuthenticated && (
+            <form onSubmit={handleCreateReview}>
+              <div className="mb-3">
+                <label className="form-label">Puntaje (1 a 5)</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={5}
+                  className="form-control"
                   value={rating}
                   onChange={(e) => setRating(Number(e.target.value))}
-                >
-                  {[5, 4, 3, 2, 1].map((n) => (
-                    <option key={n} value={n}>
-                      {n} ★
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
-              <div className="col-12 col-md-8">
-                <input
+              <div className="mb-3">
+                <label className="form-label">Comentario</label>
+                <textarea
                   className="form-control"
-                  placeholder="¿Qué te pareció?"
+                  rows={3}
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                 />
               </div>
-              <div className="col-12 col-md-2 d-grid">
-                <button className="btn btn-primary" onClick={handleAddReview}>
-                  Publicar
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <p className="text-muted">Inicia sesión para escribir una reseña.</p>
-        )}
-      </section>
+              <button
+                type="submit"
+                className="btn btn-success"
+                disabled={submitting}
+              >
+                {submitting ? "Guardando..." : "Publicar reseña"}
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

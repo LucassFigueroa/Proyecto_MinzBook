@@ -7,7 +7,7 @@ import Support from "@/pages/Support";
 import Auth from "@/pages/Auth";
 import BookDetail from "@/pages/BookDetail";
 import Cart from "@/pages/Cart";
-import Checkout from "@/pages/Checkout"; // 👈 NUEVO
+import Checkout from "@/pages/Checkout";
 import NavBar from "@/components/NavBar";
 import { useAuth } from "@/context/AuthContext";
 
@@ -34,9 +34,10 @@ export default function AppRouter() {
           <Route path="/catalog" element={<Catalog />} />
           <Route path="/author" element={<Author />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/book/:isbn" element={<BookDetail />} />
+          <Route path="/books/:id" element={<BookDetail />} />
+
           <Route path="/cart" element={<Cart />} />
-          <Route path="/checkout" element={<Checkout />} /> {/* 👈 NUEVA RUTA */}
+          <Route path="/checkout" element={<Checkout />} />
           <Route path="/auth" element={<Auth />} />
 
           <Route

@@ -1,152 +1,131 @@
 import { useEffect, useState } from "react";
+import {
+  createTicket,
+  getMyTickets,
+  SupportTicket,
+  CreateTicketPayload,
+} from "@/api/supportApi";
 import { useAuth } from "@/context/AuthContext";
 
-interface ContactMessage {
-  id: string;
-  name: string;
-  email: string;
-  message: string;
-  date: string;
-  response?: string;
-}
+export default function Support() {
+  const { isAuthenticated, user } = useAuth();
 
-// 📦 Función que carga los mensajes guardados en localStorage
-function loadMessages(): ContactMessage[] {
-  try {
-    const raw = localStorage.getItem("contactMessages");
-    const parsed = raw ? (JSON.parse(raw) as ContactMessage[]) : [];
-    // Ordenar del más nuevo al más antiguo
-    return parsed.sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
-  } catch {
-    return [];
-  }
-}
+  const [tickets, setTickets] = useState<SupportTicket[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-export default function SupportPage() {
-  const { user } = useAuth();
-  const [messages, setMessages] = useState<ContactMessage[]>([]);
-  const [responses, setResponses] = useState<{ [id: string]: string }>({});
+  const [subject, setSubject] = useState("");
+  const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  // 🔁 Cargar mensajes al montar y actualizar si cambia el localStorage
   useEffect(() => {
-    const load = () => setMessages(loadMessages());
-    load(); // primera carga
+    if (!isAuthenticated) {
+      setLoading(false);
+      return;
+    }
 
-    window.addEventListener("focus", load);
-    window.addEventListener("storage", load);
+    setLoading(true);
+    getMyTickets()
+      .then(setTickets)
+      .catch((err) => setError(err.message || "Error al cargar tickets"))
+      .finally(() => setLoading(false));
+  }, [isAuthenticated]);
 
-    return () => {
-      window.removeEventListener("focus", load);
-      window.removeEventListener("storage", load);
-    };
-  }, []);
+  const handleCreateTicket = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  // 📨 Enviar respuesta
-  const handleResponse = (id: string) => {
-    const text = responses[id]?.trim();
-    if (!text) return alert("Por favor escribe una respuesta 💬");
+    if (!subject.trim() || !message.trim()) {
+      alert("Asunto y mensaje son obligatorios");
+      return;
+    }
 
-    const updated = messages.map((m) =>
-      m.id === id ? { ...m, response: text } : m
-    );
-    setMessages(updated);
-    localStorage.setItem("contactMessages", JSON.stringify(updated));
-    alert("✅ Respuesta guardada correctamente");
+    setSubmitting(true);
+    try {
+      const payload: CreateTicketPayload = { subject, message };
+      const newTicket = await createTicket(payload);
+      setTickets((prev) => [newTicket, ...prev]);
+      setSubject("");
+      setMessage("");
+      alert("✅ Ticket creado con éxito");
+    } catch (err: any) {
+      alert(err.message || "Error al crear ticket");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  // 🔒 Solo visible si el usuario es soporte
-  console.log("Usuario actual:", user);
-  if (!user || user.email?.toLowerCase() !== "soporte@minzbook.cl") {
+  if (!isAuthenticated) {
     return (
-      <div className="container py-5 text-center">
-        <h4 className="text-muted">🚫 No tienes permiso para acceder a esta página.</h4>
+      <div className="container py-4">
+        <h2>Soporte</h2>
+        <p className="text-muted">
+          Debes iniciar sesión para ver y crear tickets de soporte.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="container py-5" style={{ maxWidth: 900 }}>
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="m-0" style={{ color: "var(--color-verde)" }}>
-          Bandeja de Soporte 💬
-        </h2>
-        <span className="badge text-bg-success">{messages.length} mensajes</span>
-      </div>
+    <div className="container py-4">
+      <h2 className="mb-3">Soporte</h2>
+      <p className="text-muted">Hola {user?.name}, ¿en qué te ayudamos? 🙂</p>
 
-      {messages.length === 0 ? (
-        <div className="alert alert-warning text-center">
-          No hay mensajes recibidos desde el formulario de Contacto.
-        </div>
-      ) : (
-        <div className="list-group">
-          {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className="list-group-item mb-3 shadow-sm"
-              style={{ backgroundColor: "#fffaf3" }}
-            >
-              <div className="d-flex justify-content-between align-items-start">
-                <div>
-                  <p className="mb-1">
-                    <strong>📩 De:</strong> {msg.name} ({msg.email})
-                  </p>
-                  <p className="text-muted small mb-2">
-                    <strong>🕒</strong> {msg.date}
-                  </p>
-                </div>
-                <span
-                  className={`badge ${
-                    msg.response ? "text-bg-success" : "text-bg-secondary"
-                  }`}
-                >
-                  {msg.response ? "Respondido" : "Pendiente"}
-                </span>
-              </div>
-
-              <p className="mb-2">
-                <strong>💬 Mensaje:</strong> {msg.message}
-              </p>
-
-              {msg.response ? (
-                <div className="mt-2 p-2 border rounded bg-light">
-                  <strong>✅ Respuesta enviada:</strong>
-                  <p className="mb-0">{msg.response}</p>
-                </div>
-              ) : (
-                <div className="mt-3">
-                  <textarea
-                    className="form-control mb-2"
-                    rows={2}
-                    placeholder="Escribe tu respuesta..."
-                    value={responses[msg.id] || ""}
-                    onChange={(e) =>
-                      setResponses({ ...responses, [msg.id]: e.target.value })
-                    }
-                  />
-                  <div className="d-flex gap-2">
-                    <button
-                      className="btn btn-success btn-sm fw-bold"
-                      onClick={() => handleResponse(msg.id)}
-                    >
-                      Enviar respuesta
-                    </button>
-                    <button
-                      className="btn btn-outline-secondary btn-sm"
-                      onClick={() =>
-                        setResponses((prev) => ({ ...prev, [msg.id]: "" }))
-                      }
-                    >
-                      Limpiar
-                    </button>
-                  </div>
-                </div>
-              )}
+      <div className="row">
+        {/* Formulario */}
+        <div className="col-md-6 mb-4">
+          <h4>Crear nuevo ticket</h4>
+          <form onSubmit={handleCreateTicket}>
+            <div className="mb-3">
+              <label className="form-label">Asunto</label>
+              <input
+                className="form-control"
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+              />
             </div>
-          ))}
+            <div className="mb-3">
+              <label className="form-label">Mensaje</label>
+              <textarea
+                className="form-control"
+                rows={4}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+              />
+            </div>
+            <button
+              type="submit"
+              className="btn btn-success"
+              disabled={submitting}
+            >
+              {submitting ? "Enviando..." : "Enviar ticket"}
+            </button>
+          </form>
         </div>
-      )}
+
+        {/* Lista de tickets */}
+        <div className="col-md-6">
+          <h4>Mis tickets</h4>
+          {loading && <p>Cargando tickets...</p>}
+          {error && <p className="text-danger">Error: {error}</p>}
+          {!loading && tickets.length === 0 && <p>No tienes tickets aún.</p>}
+
+          <ul className="list-group">
+            {tickets.map((t) => (
+              <li key={t.id} className="list-group-item">
+                <div className="d-flex justify-content-between">
+                  <strong>{t.subject}</strong>
+                  <span className="badge bg-secondary">{t.status}</span>
+                </div>
+                <p className="mb-1">{t.message}</p>
+                <small className="text-muted">
+                  {t.createdAt &&
+                    new Date(t.createdAt).toLocaleString("es-CL")}
+                </small>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
     </div>
   );
 }

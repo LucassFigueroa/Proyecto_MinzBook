@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { Eye, EyeOff } from "lucide-react"; //
+import { Eye, EyeOff } from "lucide-react";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -27,14 +27,25 @@ export default function Auth() {
 
     try {
       if (isRegister) {
-        if (form.password !== form.confirmarPassword)
-          return alert("Las contraseñas no coinciden 🔐");
+        if (form.password !== form.confirmarPassword) {
+          alert("Las contraseñas no coinciden 🔐");
+          return;
+        }
 
-        await register(form.nombre, form.email, form.password);
+        await register({
+          name: form.nombre,    // 👈 CORRECTO
+          email: form.email,
+          password: form.password,
+        });
+
         alert(`✅ Usuario ${form.nombre} registrado con éxito`);
         navigate("/");
       } else {
-        await login(form.email, form.password);
+        await login({
+          email: form.email,
+          password: form.password,
+        });
+
         alert(`👋 Bienvenido, ${form.email}`);
         navigate("/");
       }

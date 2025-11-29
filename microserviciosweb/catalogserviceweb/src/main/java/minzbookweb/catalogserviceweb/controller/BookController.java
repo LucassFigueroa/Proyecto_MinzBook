@@ -23,9 +23,10 @@ public class BookController {
         return service.getAll();
     }
 
-    @GetMapping("/{isbn}")
-    public Book one(@PathVariable String isbn) {
-        return service.getByIsbn(isbn);
+    // Ahora todo por ID
+    @GetMapping("/{id}")
+    public Book one(@PathVariable Long id) {
+        return service.getById(id);
     }
 
     @PostMapping
@@ -33,14 +34,14 @@ public class BookController {
         return service.create(dto);
     }
 
-    @PutMapping("/{isbn}")
-    public Book update(@PathVariable String isbn, @RequestBody BookRequest dto) {
-        return service.update(isbn, dto);
+    @PutMapping("/{id}")
+    public Book update(@PathVariable Long id, @RequestBody BookRequest dto) {
+        return service.update(id, dto);
     }
 
-    @DeleteMapping("/{isbn}")
-    public void delete(@PathVariable String isbn) {
-        service.delete(isbn);
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Long id) {
+        service.delete(id);
     }
 
     @GetMapping("/search")

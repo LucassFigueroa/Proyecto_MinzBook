@@ -1,81 +1,123 @@
+// src/pages/Author.tsx
 import { useState, ChangeEvent } from "react";
-import { books as baseBooks } from "@/data/books";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import { createBook, uploadBookCover, CreateBookPayload } from "@/api/booksApi";
 
-interface Book {
+interface BookForm {
   title: string;
   author: string;
   description: string;
-  price: number;
-  cover?: string;
+  price: string;   // lo convertimos a number al guardar
   isbn: string;
-  genre?: string;
+  genre: string;
 }
 
 export default function AuthorPage() {
-  const [book, setBook] = useState<Book>({
+  const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
+
+  const [book, setBook] = useState<BookForm>({
     title: "",
     author: "",
     description: "",
-    price: 0,
-    cover: "",
+    price: "",
+    coverUrl: "",
     isbn: "",
     genre: "",
-  });
+  } as any); // coverUrl lo agregamos en payload, no en el form
 
+  const [coverFile, setCoverFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  // 📸 Cargar imagen de portada
+  // 📸 Cargar imagen de portada (solo preview + archivo)
   const handleCoverChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreview(reader.result as string);
-      setBook({ ...book, cover: reader.result as string });
-    };
-    reader.readAsDataURL(file);
+    setCoverFile(file);
+    const objectUrl = URL.createObjectURL(file);
+    setPreview(objectUrl);
   };
 
-  // 💾 Guardar libro nuevo (fusionado con los existentes)
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!book.title || !book.author || !book.description || !book.price) {
-      alert("Por favor completa todos los campos 💧");
+    if (!isAuthenticated) {
+      alert("Debes iniciar sesión para publicar un libro 💧");
       return;
     }
 
-    // Generar ISBN simple
-    const newBook: Book = {
-      ...book,
-      isbn: crypto.randomUUID(),
-    };
+    if (
+      !book.title.trim() ||
+      !book.author.trim() ||
+      !book.description.trim() ||
+      !book.price
+    ) {
+      alert("Por favor completa todos los campos obligatorios 💧");
+      return;
+    }
 
-    // Guardar en localStorage junto con los libros base
-    const savedBooks = JSON.parse(localStorage.getItem("customBooks") || "[]");
-    const updatedBooks = [...savedBooks, newBook];
-    localStorage.setItem("customBooks", JSON.stringify(updatedBooks));
+    setSubmitting(true);
 
-    alert(`📚 Libro "${book.title}" publicado con éxito`);
-    console.log("Libro publicado:", newBook);
+    try {
+      // 1) Subir portada si hay archivo
+      let coverUrl: string | undefined;
+      if (coverFile) {
+        coverUrl = await uploadBookCover(coverFile);
+      }
 
-    // Limpiar formulario
-    setBook({
-      title: "",
-      author: "",
-      description: "",
-      price: 0,
-      cover: "",
-      isbn: "",
-      genre: "",
-    });
-    setPreview(null);
+      // 2) Generar ISBN si el campo está vacío
+      const isbn =
+        book.isbn.trim().length > 0
+          ? book.isbn.trim()
+          : crypto.randomUUID();
+
+      const payload: CreateBookPayload = {
+        isbn,
+        title: book.title.trim(),
+        author: book.author.trim(),
+        description: book.description.trim(),
+        price: Number(book.price),
+        genre: book.genre.trim(),
+        coverUrl,
+        postedByUserId: user?.id,
+      };
+
+      const created = await createBook(payload);
+
+      alert(`📚 Libro "${created.title}" publicado con éxito`);
+      console.log("Libro publicado:", created);
+
+      // 3) Limpiar formulario
+      setBook({
+        title: "",
+        author: "",
+        description: "",
+        price: "",
+        isbn: "",
+        genre: "",
+      });
+      setCoverFile(null);
+      setPreview(null);
+
+      // 4) Ir al catálogo para verlo listado
+      navigate("/catalog");
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || "Error al publicar el libro");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <div className="container py-5" style={{ maxWidth: 700 }}>
-      <h2 className="text-center mb-4" style={{ color: "var(--color-verde)" }}>
+      <h2
+        className="text-center mb-4"
+        style={{ color: "var(--color-verde)" }}
+      >
         Publicar nuevo libro
       </h2>
 
@@ -125,6 +167,18 @@ export default function AuthorPage() {
           ></textarea>
         </div>
 
+        {/* Género */}
+        <div className="mb-3">
+          <label className="form-label fw-bold">Género</label>
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Ejemplo: Fantasía, Aventura, Romance..."
+            value={book.genre}
+            onChange={(e) => setBook({ ...book, genre: e.target.value })}
+          />
+        </div>
+
         {/* Precio */}
         <div className="mb-3">
           <label className="form-label fw-bold">Precio</label>
@@ -135,9 +189,23 @@ export default function AuthorPage() {
             placeholder="Ejemplo: 14990"
             value={book.price}
             onChange={(e) =>
-              setBook({ ...book, price: Number(e.target.value) })
+              setBook({ ...book, price: e.target.value })
             }
             required
+          />
+        </div>
+
+        {/* ISBN opcional */}
+        <div className="mb-3">
+          <label className="form-label fw-bold">
+            ISBN (opcional, se genera uno si lo dejas vacío)
+          </label>
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Ejemplo: 978-3-16-148410-0"
+            value={book.isbn}
+            onChange={(e) => setBook({ ...book, isbn: e.target.value })}
           />
         </div>
 
@@ -171,8 +239,12 @@ export default function AuthorPage() {
           )}
         </div>
 
-        <button type="submit" className="btn btn-success w-100 fw-bold mt-3">
-          Publicar libro
+        <button
+          type="submit"
+          className="btn btn-success w-100 fw-bold mt-3"
+          disabled={submitting}
+        >
+          {submitting ? "Publicando..." : "Publicar libro"}
         </button>
       </form>
     </div>
