@@ -1,24 +1,44 @@
 import { API } from "./baseUrl";
 
-export async function createTicket(data: any) {
+export interface SupportTicket {
+  id: number;
+  userId: number;
+  subject: string;
+  message: string;
+  status: "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
+  createdAt: string;
+  updatedAt: string;
+  resolvedAt?: string;
+  closingReason?: string;
+}
+
+export async function createTicket(
+  data: { userId: number; subject: string; message: string },
+  token: string
+): Promise<SupportTicket> {
   const res = await fetch(API.support, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
     body: JSON.stringify(data),
   });
+
+  if (!res.ok) throw new Error("No se pudo crear el ticket");
   return res.json();
 }
 
-export async function getUserTickets(userId: number) {
-  const res = await fetch(`${API.support}/user/${userId}`);
-  return res.json();
-}
-
-export async function updateTicketStatus(id: number, data: any) {
-  const res = await fetch(`${API.support}/${id}/status`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
+export async function getUserTickets(
+  userId: number,
+  token: string
+): Promise<SupportTicket[]> {
+  const res = await fetch(`${API.support}/user/${userId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
   });
+
+  if (!res.ok) throw new Error("No se pudieron obtener los tickets");
   return res.json();
 }

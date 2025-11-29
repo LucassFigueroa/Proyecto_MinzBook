@@ -33,7 +33,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
 
-  // cargar sesión guardada
   useEffect(() => {
     try {
       const raw = localStorage.getItem(LS_KEY);
@@ -42,7 +41,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(parsed.user);
       setToken(parsed.token);
     } catch {
-      /* ignore */
+      // ignore
     }
   }, []);
 
@@ -57,30 +56,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const handleAuthResponse = (res: AuthResponse) => {
+    const authUser: AuthUser = {
+      id: res.id,
+      name: res.name,
+      email: res.email,
+      role: res.role,
+    };
+    persist({ user: authUser, token: res.token });
+  };
+
   const login = async (payload: LoginPayload) => {
     const res = await apiLogin(payload);
-    persist({
-      user: {
-        id: res.id,
-        name: res.name,
-        email: res.email,
-        role: res.role,
-      },
-      token: res.token,
-    });
+    handleAuthResponse(res);
   };
 
   const register = async (payload: RegisterPayload) => {
     const res = await apiRegister(payload);
-    persist({
-      user: {
-        id: res.id,
-        name: res.name,
-        email: res.email,
-        role: res.role,
-      },
-      token: res.token,
-    });
+    handleAuthResponse(res);
   };
 
   const logout = () => {

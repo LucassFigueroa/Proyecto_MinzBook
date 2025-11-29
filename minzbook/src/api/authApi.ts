@@ -19,7 +19,33 @@ export interface RegisterPayload {
   name: string;
   email: string;
   password: string;
-  role?: Role;
+}
+
+async function handleResponse(res: Response) {
+  const contentType = res.headers.get("Content-Type") || "";
+  const text = await res.text();
+
+  let data: any = null;
+  try {
+    if (contentType.includes("application/json")) {
+      data = JSON.parse(text);
+    }
+  } catch {
+    // ignorar parseo
+  }
+
+  if (!res.ok) {
+    console.error("❌ Error Auth API:", res.status, text);
+
+    if (data && typeof data.message === "string") {
+      throw new Error(data.message);
+    }
+
+    throw new Error(text || `Error HTTP ${res.status}`);
+  }
+
+  if (data !== null) return data;
+  return text;
 }
 
 export async function login(payload: LoginPayload): Promise<AuthResponse> {
@@ -29,19 +55,19 @@ export async function login(payload: LoginPayload): Promise<AuthResponse> {
     body: JSON.stringify(payload),
   });
 
-  if (!res.ok) throw new Error("Credenciales inválidas");
-
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function register(payload: RegisterPayload): Promise<AuthResponse> {
   const res = await fetch(`${API.auth}/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      name: payload.name,
+      email: payload.email,
+      password: payload.password,
+    }), // 👈 AQUÍ VA EL JSON CORRECTO
   });
 
-  if (!res.ok) throw new Error("Error al registrar usuario");
-
-  return res.json();
+  return handleResponse(res);
 }
