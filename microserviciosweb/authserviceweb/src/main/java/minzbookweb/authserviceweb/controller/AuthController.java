@@ -16,9 +16,21 @@ import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 import java.util.Optional;
 
+// Swagger
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin
+@Tag(
+        name = "Autenticación",
+        description = "Endpoints para registrar usuarios, iniciar sesión y obtener información del usuario autenticado mediante JWT."
+)
 public class AuthController {
 
     private final UserRepository userRepository;
@@ -33,8 +45,36 @@ public class AuthController {
         this.jwtService = jwtService;
     }
 
+    // ============================
+    //   REGISTER
+    // ============================
+    @Operation(
+            summary = "Registrar un nuevo usuario",
+            description = "Crea un nuevo usuario con rol USER por defecto. "
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "Usuario registrado correctamente",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = AuthResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "El email ya está registrado",
+                    content = @Content(mediaType = "text/plain")
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Datos inválidos (error de validación)"
+            )
+    })
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<?> register(
+            @Valid @RequestBody RegisterRequest request
+    ) {
         if (userRepository.existsByEmail(request.getEmail())) {
             return ResponseEntity
                     .status(HttpStatus.CONFLICT)
@@ -46,7 +86,7 @@ public class AuthController {
                 request.getName(),
                 request.getEmail(),
                 hash,
-                Role.USER   // rol por defecto
+                Role.USER // rol por defecto
         );
         userRepository.save(user);
 
@@ -63,8 +103,36 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    // ============================
+    //   LOGIN
+    // ============================
+    @Operation(
+            summary = "Iniciar sesión",
+            description = "Valida las credenciales del usuario y retorna un token JWT junto con sus datos."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Login exitoso",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = AuthResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Credenciales inválidas",
+                    content = @Content(mediaType = "text/plain")
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Datos inválidos (error de validación)"
+            )
+    })
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(
+            @Valid @RequestBody LoginRequest request
+    ) {
         Optional<User> opt = userRepository.findByEmail(request.getEmail());
         if (opt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -72,6 +140,7 @@ public class AuthController {
         }
 
         User user = opt.get();
+
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body("Credenciales inválidas.");
@@ -90,14 +159,37 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    // ============================
+    //   ME (usuario autenticado)
+    // ============================
+    @Operation(
+            summary = "Obtener información del usuario autenticado",
+            description = "Retorna los datos del usuario basados en el token JWT enviado en Authorization."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Información del usuario autenticado",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = AuthResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Token inválido o usuario no autenticado"
+            )
+    })
     @GetMapping("/me")
     public ResponseEntity<?> me(Principal principal) {
+
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         String email = principal.getName();
         Optional<User> opt = userRepository.findByEmail(email);
+
         if (opt.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -105,7 +197,7 @@ public class AuthController {
         User user = opt.get();
 
         AuthResponse response = new AuthResponse(
-                null,
+                null,   // el token NO se vuelve a mostrar
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
