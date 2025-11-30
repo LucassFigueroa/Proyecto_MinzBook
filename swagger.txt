@@ -2,3 +2,7 @@ http://localhost:8086/swagger-ui.html---auth
 http://localhost:8087/swagger-ui.html---catalog
 http://localhost:8088/swagger-ui.html---review
 http://localhost:8089/swagger-ui.html---support
+
+
+npm install -D @types/react @types/react-dom
+npm run dev
