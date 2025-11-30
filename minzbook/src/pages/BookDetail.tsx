@@ -6,17 +6,27 @@ import {
   getReviewsByBook,
   createReview,
   Review,
+  deleteReview,
+  DeleteReviewPayload,
   CreateReviewPayload,
 } from "@/api/reviewsApi";
 import { useAuth } from "@/context/AuthContext";
+import { useCart } from "@/context/CartContext";
 import { API } from "@/api/baseUrl";
 
 const IMAGE_BASE = API.books.replace("/api/books", "");
 
 export default function BookDetail() {
   const { id } = useParams<{ id: string }>();
-  const bookId = Number(id);
-  const { isAuthenticated } = useAuth();
+
+  // id crudo de la URL (string) → para reviews
+  const bookIdStr = id ?? "";
+
+  // id numérico → para catalogservice
+  const bookIdNum = id ? Number(id) : NaN;
+
+  const { isAuthenticated, user } = useAuth();
+  const { add } = useCart();
 
   const [book, setBook] = useState<Book | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -28,59 +38,162 @@ export default function BookDetail() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!bookId) return;
+    // si no hay id en la URL, no hacemos nada
+    if (!id) {
+      setError("ID de libro no válido en la URL.");
+      setLoading(false);
+      return;
+    }
 
+    let cancelled = false;
     setLoading(true);
-    Promise.all([getBookById(bookId), getReviewsByBook(bookId)])
-      .then(([bookRes, reviewsRes]) => {
-        setBook(bookRes);
-        setReviews(reviewsRes);
-      })
-      .catch((err) =>
-        setError(err.message || "Error al cargar el detalle del libro")
-      )
-      .finally(() => setLoading(false));
-  }, [bookId]);
+    setError(null);
+
+    const load = async () => {
+      // Ejecutamos ambas peticiones en paralelo para mejorar la velocidad de carga
+      // y asegurar que una no bloquee a la otra si falla.
+      const [bookResult, reviewsResult] = await Promise.allSettled([
+        // 1) Cargar libro (catalogservice)
+        Number.isNaN(bookIdNum)
+          ? Promise.reject(new Error("ID de libro inválido (no numérico)."))
+          : getBookById(bookIdNum),
+        // 2) Cargar reseñas (reviewservice)
+        getReviewsByBook(bookIdStr),
+      ]);
+
+      if (cancelled) return;
+
+      // Procesar resultado del libro
+      if (bookResult.status === "fulfilled") {
+        setBook(bookResult.value);
+      } else {
+        console.error("Error al cargar libro:", bookResult.reason);
+        setError(
+          bookResult.reason?.message || "Error al cargar el detalle del libro"
+        );
+      }
+
+      // Procesar resultado de las reseñas
+      if (reviewsResult.status === "fulfilled") {
+        setReviews(reviewsResult.value);
+        console.log(
+          "%c[DEBUG] Pidiendo reseñas a:",
+          "color: green; font-weight: bold;",
+          `${API.reviews}/book/${bookIdStr}`
+        );
+      } else {
+        console.error("Error al cargar reseñas:", reviewsResult.reason);
+        // Si solo fallan las reseñas, no mostramos un error global,
+        // simplemente no se verán en la UI.
+        setReviews([]);
+      }
+
+      setLoading(false);
+    };
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id, bookIdNum, bookIdStr]);
 
   const handleAddToCart = (book: Book) => {
-    alert(`🛒 (demo) "${book.title}" agregado al carrito`);
+    if (!book.id) {
+      alert("Este libro no tiene un ID válido para el carrito.");
+      return;
+    }
+
+    add({
+      id: String(book.id),
+      title: book.title,
+      price: book.price ?? 0,
+    });
+
+    alert(`🛒 "${book.title}" agregado al carrito`);
   };
 
   const handleCreateReview = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!bookId) return;
+    if (!bookIdStr) return;
+
+    if (!isAuthenticated || !user) {
+      alert("Debes iniciar sesión para dejar una reseña.");
+      return;
+    }
+
     if (!comment.trim()) {
-      alert("Escribe un comentario 🙂");
+      alert("Escribe un comentario antes de enviar la reseña.");
       return;
     }
 
     setSubmitting(true);
     try {
       const payload: CreateReviewPayload = {
-        bookId,
+        bookId: bookIdStr, // String en backend
+        userId: user.id,   // Long en backend
         rating,
         comment,
       };
+
       const newReview = await createReview(payload);
       setReviews((prev) => [newReview, ...prev]);
       setComment("");
       setRating(5);
-      alert("✅ Reseña creada con éxito");
+      alert(" Reseña creada con éxito");
     } catch (err: any) {
+      console.error("Error al crear reseña:", err);
       alert(err.message || "Error al crear reseña");
     } finally {
       setSubmitting(false);
     }
   };
 
+  const handleDeleteReview = async (reviewId: number) => {
+    const reason = prompt(
+      "Por favor, ingresa el motivo para eliminar esta reseña:"
+    );
+
+    if (!reason || reason.trim() === "") {
+      alert("Debes proporcionar un motivo para eliminar la reseña.");
+      return;
+    }
+
+    if (!confirm(`¿Estás seguro de eliminar esta reseña?\nMotivo: ${reason}`)) {
+      return;
+    }
+
+    try {
+      const payload: DeleteReviewPayload = { reviewId, reason };
+      const updatedReview = await deleteReview(payload);
+
+      // Actualizamos la reseña en el estado local para que refleje el cambio
+      // (se marcará como inactiva y desaparecerá de la lista visible).
+      setReviews((prev) =>
+        prev.map((r) => (r.id === reviewId ? updatedReview : r))
+      );
+      alert(" Reseña eliminada correctamente.");
+    } catch (err: any) {
+      console.error("Error al eliminar reseña:", err);
+      alert(err.message || "No se pudo eliminar la reseña.");
+    }
+  };
+
+  const isAdmin = user?.email === "admin@minzbook.cl";
+
   if (loading) return <p className="text-center mt-4">Cargando libro...</p>;
-  if (error)
+
+  // si hubo error con el libro, lo mostramos (pero igual pudo intentar reviews)
+  if (error && !book)
     return (
       <p className="text-center mt-4 text-danger">
         Error: {error}
       </p>
     );
+
   if (!book) return <p className="text-center mt-4">Libro no encontrado.</p>;
+
+  const visibleReviews = reviews.filter((r) => r.active);
 
   return (
     <div className="container py-4">
@@ -123,20 +236,36 @@ export default function BookDetail() {
       <div className="row">
         <div className="col-md-6 mb-4">
           <h4>Reseñas</h4>
-          {reviews.length === 0 && <p>No hay reseñas aún.</p>}
+          {visibleReviews.length === 0 && <p>No hay reseñas aún.</p>}
 
           <ul className="list-group">
-            {reviews.map((r) => (
+            {visibleReviews.map((r) => (
               <li key={r.id} className="list-group-item">
-                <div className="d-flex justify-content-between">
-                  <strong>{r.rating} ⭐</strong>
-                  {r.fechaCreacion && (
-                    <small className="text-muted">
-                      {new Date(r.fechaCreacion).toLocaleString("es-CL")}
-                    </small>
+                <div className="d-flex justify-content-between align-items-start">
+                  <div>
+                    <strong>{r.rating} ⭐</strong>
+                    {r.createdAt && (
+                      <small className="text-muted ms-2">
+                        {new Date(r.createdAt).toLocaleString("es-CL")}
+                      </small>
+                    )}
+                  </div>
+                  {isAdmin && (
+                    <button
+                      className="btn btn-outline-danger btn-sm"
+                      title="Eliminar reseña"
+                      onClick={() => handleDeleteReview(r.id)}
+                    >
+                      🗑️
+                    </button>
                   )}
                 </div>
                 <p className="mb-0">{r.comment}</p>
+                {!r.active && r.deletedReason && (
+                  <small className="text-muted d-block">
+                    Inactiva: {r.deletedReason}
+                  </small>
+                )}
               </li>
             ))}
           </ul>

@@ -1,32 +1,51 @@
 import { useState } from "react";
-
-interface ContactMessage {
-  id: string;
-  name: string;
-  email: string;
-  message: string;
-  date: string;
-  response?: string;
-}
+import { createTicket } from "@/api/supportApi";
+import { useAuth } from "@/context/AuthContext";
 
 export default function ContactPage() {
+  const { isAuthenticated } = useAuth();
   const [form, setForm] = useState({ name: "", email: "", message: "" });
+  const [sending, setSending] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const newMessage: ContactMessage = {
-      id: crypto.randomUUID(),
-      ...form,
-      date: new Date().toLocaleString(),
-    };
+    if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
+      alert("Por favor completa todos los campos 🙂");
+      return;
+    }
 
-    // Guarda en localStorage en la misma clave que lee soporte
-    const existing = JSON.parse(localStorage.getItem("contactMessages") || "[]");
-    localStorage.setItem("contactMessages", JSON.stringify([...existing, newMessage]));
+    if (!isAuthenticated) {
+      alert(
+        "Debes iniciar sesión para enviar un mensaje al soporte y que quede registrado como ticket."
+      );
+      return;
+    }
 
-    alert("💌 Tu mensaje fue enviado con éxito. ¡Gracias por contactarnos!");
-    setForm({ name: "", email: "", message: "" });
+    const subject = `Consulta de ${form.name}`;
+    const fullMessage =
+      `Nombre: ${form.name}\n` +
+      `Email: ${form.email}\n\n` +
+      `${form.message}`;
+
+    try {
+      setSending(true);
+      await createTicket({
+        subject,
+        message: fullMessage,
+      });
+
+      alert("💌 Tu mensaje fue enviado a soporte y se creó un ticket. ¡Gracias por contactarnos!");
+      setForm({ name: "", email: "", message: "" });
+    } catch (err: any) {
+      console.error(err);
+      alert(
+        err.message ||
+          "Ocurrió un error al enviar tu mensaje. Inténtalo nuevamente en unos minutos."
+      );
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -73,8 +92,19 @@ export default function ContactPage() {
           ></textarea>
         </div>
 
-        <button type="submit" className="btn btn-success w-100 fw-bold mt-3">
-          Enviar mensaje
+        {!isAuthenticated && (
+          <p className="text-muted small mt-2">
+            * Debes iniciar sesión para que tu mensaje se registre como ticket
+            y el equipo de soporte pueda responderte.
+          </p>
+        )}
+
+        <button
+          type="submit"
+          className="btn btn-success w-100 fw-bold mt-3"
+          disabled={sending}
+        >
+          {sending ? "Enviando..." : "Enviar mensaje"}
         </button>
       </form>
     </div>

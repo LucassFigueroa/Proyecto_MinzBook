@@ -1,18 +1,21 @@
+// src/api/reviewsApi.ts
 import { API } from "./baseUrl";
 
 export interface Review {
   id: number;
-  bookId: number;
+  bookId: string;       // en tu DTO era String
   userId: number;
   rating: number;
   comment: string;
-  activo: boolean;
-  fechaCreacion: string;
-  fechaActualizacion: string;
+  active: boolean;
+  deletedReason?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
 }
 
 export interface CreateReviewPayload {
-  bookId: number;
+  bookId: string;  // String en backend
+  userId: number;
   rating: number;
   comment: string;
 }
@@ -21,26 +24,8 @@ export interface UpdateReviewPayload {
   id: number;
   rating?: number;
   comment?: string;
-}
-
-async function handleResponse(res: Response) {
-  const contentType = res.headers.get("Content-Type") || "";
-  const text = await res.text();
-
-  let data: any = null;
-  try {
-    if (contentType.includes("application/json")) {
-      data = JSON.parse(text);
-    }
-  } catch {}
-
-  if (!res.ok) {
-    console.error("❌ Review API:", res.status, text);
-    if (data?.message) throw new Error(data.message);
-    throw new Error(text || `HTTP ${res.status}`);
-  }
-
-  return data ?? text;
+  active?: boolean;
+  deletedReason?: string | null;
 }
 
 function authHeaders(): HeadersInit {
@@ -55,17 +40,50 @@ function authHeaders(): HeadersInit {
   }
 }
 
-// GET /api/reviews/book/{id}
-export async function getReviewsByBook(bookId: number): Promise<Review[]> {
-  const res = await fetch(`${API.reviews}/book/${bookId}`, {
-    method: "GET",
-    headers: { ...authHeaders() },
-  });
-  return handleResponse(res);
+async function handleResponse<T = any>(res: Response): Promise<T> {
+  const contentType = res.headers.get("Content-Type") || "";
+  const text = await res.text();
+
+  let data: any = null;
+  try {
+    if (contentType.includes("application/json")) {
+      data = JSON.parse(text);
+    }
+  } catch {
+    // ignore parse error
+  }
+
+  if (!res.ok) {
+    console.error(" Reviews API:", res.status, text);
+    if (data?.message) throw new Error(data.message);
+    throw new Error(text || `HTTP ${res.status}`);
+  }
+
+  return (data ?? text) as T;
 }
 
-// POST /api/reviews
-export async function createReview(payload: CreateReviewPayload): Promise<Review> {
+/**
+ * GET /api/reviews/book/{bookId}
+ * Obtiene todas las reseñas activas o no para un libro
+ */
+export async function getReviewsByBook(bookId: string): Promise<Review[]> {
+  const res = await fetch(`${API.reviews}/book/${bookId}`, {
+    method: "GET",
+    headers: {
+      ...authHeaders(),
+    },
+  });
+
+  return handleResponse<Review[]>(res);
+}
+
+/**
+ * POST /api/reviews
+ * Crea una nueva reseña
+ */
+export async function createReview(
+  payload: CreateReviewPayload
+): Promise<Review> {
   const res = await fetch(`${API.reviews}`, {
     method: "POST",
     headers: {
@@ -74,28 +92,50 @@ export async function createReview(payload: CreateReviewPayload): Promise<Review
     },
     body: JSON.stringify(payload),
   });
-  return handleResponse(res);
+
+  return handleResponse<Review>(res);
 }
 
-// PUT /api/reviews/{id}
-export async function updateReview(payload: UpdateReviewPayload): Promise<Review> {
-  const { id, ...body } = payload;
+/**
+ * PUT /api/reviews/{id}
+ * Actualiza una reseña existente (opcional, por si lo usas después)
+ */
+export async function updateReview(
+  id: number,
+  payload: UpdateReviewPayload
+): Promise<Review> {
   const res = await fetch(`${API.reviews}/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
       ...authHeaders(),
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify(payload),
   });
-  return handleResponse(res);
+
+  return handleResponse<Review>(res);
 }
 
-// DELETE /api/reviews/{id}
-export async function deleteReview(id: number): Promise<void> {
-  const res = await fetch(`${API.reviews}/${id}`, {
+export interface DeleteReviewPayload {
+  reviewId: number;
+  reason: string;
+}
+
+/**
+ * DELETE /api/reviews/{id}
+ * Marca la reseña como inactiva o la borra (según backend)
+ */
+export async function deleteReview(
+  payload: DeleteReviewPayload
+): Promise<Review> {
+  const res = await fetch(`${API.reviews}/${payload.reviewId}`, {
     method: "DELETE",
-    headers: { ...authHeaders() },
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders(),
+    },
+    body: JSON.stringify({ reason: payload.reason }),
   });
-  await handleResponse(res);
+
+  return handleResponse<Review>(res);
 }

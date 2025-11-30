@@ -3,12 +3,14 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getAllBooks, Book } from "@/api/booksApi";
 import { useAuth } from "@/context/AuthContext";
+import { useCart } from "@/context/CartContext";
 import { API } from "@/api/baseUrl";
 
 const IMAGE_BASE = API.books.replace("/api/books", ""); // http://localhost:8087
 
 export default function Catalog() {
   const { isAuthenticated } = useAuth();
+  const { add } = useCart();
 
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,7 +27,13 @@ export default function Catalog() {
   }, []);
 
   const handleAddToCart = (book: Book) => {
-    alert(`🛒 (demo) "${book.title}" agregado al carrito`);
+    add({
+      id: String(book.id),
+      title: book.title,
+      price: book.price ?? 0,
+    });
+
+    alert(`🛒 "${book.title}" agregado al carrito`);
   };
 
   if (loading) {

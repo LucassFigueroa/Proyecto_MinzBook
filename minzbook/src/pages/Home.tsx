@@ -2,35 +2,48 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { featuredBooks } from "@/data/books";
+import { useCart } from "@/context/CartContext";
 
 // Definimos el tipo para el libro destacado, basado en la estructura de tus datos.
 type Book = typeof featuredBooks[0];
 
 export default function Home() {
   const [heroBook, setHeroBook] = useState<Book | null>(null);
+  const { add } = useCart();
 
-  // Este efecto se encarga de la rotación de libros
+  // Rotación de libros destacados
   useEffect(() => {
     if (featuredBooks.length === 0) return;
 
-    // Establece el primer libro inmediatamente
     setHeroBook(featuredBooks[0]);
 
     let currentIndex = 0;
     const intervalId = setInterval(() => {
       currentIndex = (currentIndex + 1) % featuredBooks.length;
       setHeroBook(featuredBooks[currentIndex]);
-    }, 4000); // Cambia de libro cada 4 segundos
+    }, 4000);
 
-    // Limpia el intervalo cuando el componente se desmonta para evitar fugas de memoria
     return () => clearInterval(intervalId);
   }, []);
+
+  const handleAddToCart = (book: Book) => {
+    add({
+      id: String(book.id),          // 👈 ID numérico del libro
+      title: book.title,
+      price: book.price ?? 0,
+    });
+
+    alert(`🛒 "${book.title}" agregado al carrito`);
+  };
 
   return (
     <div className="container py-4">
       {/* Hero / bienvenida */}
       <section className="mb-5">
-        <div className="p-4 p-md-5 rounded shadow-sm row align-items-center" style={{ backgroundColor: "#fffaf3" }}>
+        <div
+          className="p-4 p-md-5 rounded shadow-sm row align-items-center"
+          style={{ backgroundColor: "#fffaf3" }}
+        >
           <div className="col-12 col-lg-7">
             <h1 className="mb-3" style={{ color: "var(--verde-minzbook)" }}>
               Bienvenido a MinzBook
@@ -48,11 +61,15 @@ export default function Home() {
               </Link>
             </div>
           </div>
-          {/* Imagen rotando libros destacados con efecto */}
+
           {heroBook && (
             <div className="col-12 col-lg-5 d-flex justify-content-center mt-4 mt-lg-0">
               <div className="hero-wrapper text-center">
-                <img src={heroBook.image} alt={heroBook.title} className="hero-img hero-fade" />
+                <img
+                  src={heroBook.image}
+                  alt={heroBook.title}
+                  className="hero-img hero-fade"
+                />
                 <div className="mt-3">
                   <span className="badge bg-success mb-1">Libro destacado</span>
                   <div className="fw-semibold" style={{ color: "var(--dark)" }}>
@@ -101,6 +118,7 @@ export default function Home() {
                     </span>
 
                     <div className="d-flex gap-2">
+                      {/* 👇 Aquí usamos id, NO isbn */}
                       <Link
                         to={`/books/${book.id}`}
                         className="btn btn-sm btn-outline-success"
@@ -110,9 +128,7 @@ export default function Home() {
                       <button
                         type="button"
                         className="btn btn-sm btn-success"
-                        onClick={() =>
-                          alert(`🛒 (demo) "${book.title}" agregado al carrito`)
-                        }
+                        onClick={() => handleAddToCart(book)}
                       >
                         Añadir
                       </button>

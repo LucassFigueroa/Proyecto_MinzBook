@@ -19,33 +19,37 @@ public class ReviewController {
         this.service = service;
     }
 
-    @GetMapping
-    public List<Review> all() {
-        return service.all();
-    }
-
-    @GetMapping("/book/{isbn}")
-    public List<Review> reviewsOfBook(@PathVariable String isbn) {
-        return service.byBook(isbn);
-    }
-
-    @GetMapping("/user/{userId}")
-    public List<Review> reviewsOfUser(@PathVariable Long userId) {
-        return service.byUser(userId);
-    }
-
+    // Crear reseña: POST /api/reviews
     @PostMapping
-    public Review create(@RequestBody CreateReviewRequest dto) {
-        return service.create(dto);
+    public Review create(@RequestBody CreateReviewRequest req) {
+        return service.create(req);
     }
 
+    // Obtener reseñas por ID de libro: GET /api/reviews/book/{bookId}
+    @GetMapping("/book/{bookId}")
+    public List<Review> getByBookId(@PathVariable String bookId) {
+        return service.byBook(bookId);
+    }
+
+    // Actualizar reseña: PUT /api/reviews/{id}
     @PutMapping("/{id}")
-    public Review update(@PathVariable Long id, @RequestBody UpdateReviewRequest dto) {
-        return service.update(id, dto);
+    public Review update(
+            @PathVariable Long id,
+            @RequestBody UpdateReviewRequest req
+    ) {
+        return service.update(id, req);
     }
 
+    // Eliminar / desactivar reseña: DELETE /api/reviews/{id}?reason=...
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id, @RequestParam String reason) {
-        service.delete(id, reason);
+    public void delete(
+            @PathVariable Long id,
+            @RequestParam(required = false) String reason
+    ) {
+        // si no mandas razón, usa una genérica
+        String finalReason = (reason != null && !reason.isBlank())
+                ? reason
+                : "Eliminada por el usuario";
+        service.delete(id, finalReason);
     }
 }

@@ -1,3 +1,4 @@
+// src/api/supportApi.ts
 import { API } from "./baseUrl";
 
 export type TicketStatus = "OPEN" | "IN_PROGRESS" | "RESOLVED" | "CLOSED";
@@ -26,7 +27,7 @@ function authHeaders(): HeadersInit {
   try {
     const raw = localStorage.getItem("mb_auth");
     if (!raw) return {};
-    const parsed = JSON.parse(raw);
+  const parsed = JSON.parse(raw);
     if (!parsed.token) return {};
     return { Authorization: `Bearer ${parsed.token}` };
   } catch {
@@ -43,7 +44,9 @@ async function handleResponse(res: Response) {
     if (contentType.includes("application/json")) {
       data = JSON.parse(text);
     }
-  } catch {}
+  } catch {
+    // ignoramos error de parse
+  }
 
   if (!res.ok) {
     console.error("❌ Support API:", res.status, text);
@@ -54,9 +57,12 @@ async function handleResponse(res: Response) {
   return data ?? text;
 }
 
-// POST /api/support/tickets
-export async function createTicket(payload: CreateTicketPayload): Promise<SupportTicket> {
-  const res = await fetch(`${API.support}/tickets`, {
+// 🔹 Crear ticket (desde Contact)
+// POST /api/support
+export async function createTicket(
+  payload: CreateTicketPayload
+): Promise<SupportTicket> {
+  const res = await fetch(`${API.support}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -67,29 +73,38 @@ export async function createTicket(payload: CreateTicketPayload): Promise<Suppor
   return handleResponse(res);
 }
 
-// GET /api/support/tickets/me
-export async function getMyTickets(): Promise<SupportTicket[]> {
-  const res = await fetch(`${API.support}/tickets/me`, {
+// 🔹 Obtener tickets de un usuario (para "Mis tickets" del cliente)
+// GET /api/support/user/{userId}
+export async function getMyTickets(
+  userId: number
+): Promise<SupportTicket[]> {
+  const res = await fetch(`${API.support}/user/${userId}`, {
     method: "GET",
-    headers: { ...authHeaders() },
+    headers: {
+      ...authHeaders(),
+    },
   });
   return handleResponse(res);
 }
 
-// GET /api/support/tickets
+// 🔹 Obtener TODOS los tickets (panel de soporte)
+// GET /api/support
 export async function getAllTickets(): Promise<SupportTicket[]> {
-  const res = await fetch(`${API.support}/tickets`, {
+  const res = await fetch(`${API.support}`, {
     method: "GET",
-    headers: { ...authHeaders() },
+    headers: {
+      ...authHeaders(),
+    },
   });
   return handleResponse(res);
 }
 
-// PUT /api/support/tickets/{id}/status
+// 🔹 Cambiar estado de un ticket
+// PUT /api/support/{id}/status
 export async function updateTicketStatus(
   payload: UpdateTicketStatusPayload
 ): Promise<SupportTicket> {
-  const res = await fetch(`${API.support}/tickets/${payload.id}/status`, {
+  const res = await fetch(`${API.support}/${payload.id}/status`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
