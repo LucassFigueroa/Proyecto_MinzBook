@@ -52,7 +52,8 @@ public class ReviewService {
         return repo.findByUserIdAndActiveTrue(userId);
     }
 
-    public List<Review> all() {
+    public List<Review> findAll() {
         return repo.findAll();
     }
+    
 }

@@ -76,7 +76,15 @@ export default function NavBar() {
               </NavLink>
             </li>
 
-           {user?.role === "SUPPORT" && ( 
+            {user?.role === "ADMIN" && (
+              <li className="nav-item">
+                <NavLink to="/admin" className="nav-link fw-semibold" onClick={closeMenu}>
+                  Admin
+                </NavLink>
+              </li>
+            )}
+
+            {user?.role === "SUPPORT" && ( 
               <li className="nav-item">
                 <NavLink to="/support" className="nav-link fw-semibold" onClick={closeMenu}>
                   Soporte

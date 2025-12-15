@@ -9,6 +9,7 @@ import Auth from "@/pages/Auth";
 import BookDetail from "@/pages/BookDetail";
 import Cart from "@/pages/Cart";
 import Checkout from "@/pages/Checkout";
+import AdminPage from "@/pages/Admin";
 import NavBar from "@/components/NavBar";
 import ProtectedRoute from "@/routes/ProtectedRoute";
 import { Role } from "@/types/role";
@@ -52,6 +53,16 @@ export default function AppRouter() {
             element={
               <ProtectedRoute role={Role.SUPPORT}>
                 <Support />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* SOLO ADMIN */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute role={Role.ADMIN}>
+                <AdminPage />
               </ProtectedRoute>
             }
           />

@@ -78,6 +78,20 @@ export async function getReviewsByBook(bookId: string): Promise<Review[]> {
 }
 
 /**
+ * GET /api/reviews
+ * Obtiene TODAS las reseñas (para el panel de admin)
+ */
+export async function getAllReviews(): Promise<Review[]> {
+  const res = await fetch(`${API.reviews}`, {
+    method: "GET",
+    headers: {
+      ...authHeaders(),
+    },
+  });
+  return handleResponse<Review[]>(res);
+}
+
+/**
  * POST /api/reviews
  * Crea una nueva reseña
  */

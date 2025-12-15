@@ -56,6 +56,17 @@ public class ReviewController {
         return service.create(req);
     }
 
+    // Obtener TODAS las reseñas: GET /api/reviews
+    @Operation(
+            summary = "Obtener todas las reseñas",
+            description = "Devuelve un listado de todas las reseñas registradas (para administración)."
+    )
+    @GetMapping
+    public List<Review> getAllReviews() {
+        
+        return service.findAll();
+    }
+
     // Obtener reseñas por ID de libro: GET /api/reviews/book/{bookId}
     @Operation(
             summary = "Obtener reseñas por libro",

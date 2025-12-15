@@ -107,3 +107,13 @@ export async function createBook(
 
   return handleResponse(res);
 }
+
+// DELETE /api/books/{id}
+export async function deleteBook(id: number): Promise<void> {
+  const res = await fetch(`${API.books}/${id}`, {
+    method: "DELETE",
+    headers: { ...authHeaders() },
+  });
+  // No se espera contenido en la respuesta, pero handleResponse maneja el status
+  await handleResponse(res);
+}

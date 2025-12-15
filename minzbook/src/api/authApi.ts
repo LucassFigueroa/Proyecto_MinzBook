@@ -21,28 +21,37 @@ export interface RegisterPayload {
   password: string;
 }
 
-async function handleResponse(res: Response) {
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: Role;
+  createdAt: string;
+}
+
+async function handleResponse<T = any>(res: Response): Promise<T> {
   const contentType = res.headers.get("Content-Type") || "";
   const text = await res.text();
 
   let data: any = null;
   try {
-    if (contentType.includes("application/json")) {
+    // Evitar parsear JSON si el texto está vacío (ej. en respuestas 204 No Content)
+    if (contentType.includes("application/json") && text) {
       data = JSON.parse(text);
     }
-  } catch {}
+  } catch {
+    // ignorar error de parseo
+  }
 
   if (!res.ok) {
     console.error("❌ Error Auth API:", res.status, text);
 
-    if (data && typeof data.message === "string") {
-      throw new Error(data.message);
-    }
+    if (data?.message) throw new Error(data.message);
 
     throw new Error(text || `Error HTTP ${res.status}`);
   }
 
-  return data !== null ? data : text;
+  return (data !== null ? data : text) as T;
 }
 
 export async function login(payload: LoginPayload): Promise<AuthResponse> {
@@ -52,7 +61,7 @@ export async function login(payload: LoginPayload): Promise<AuthResponse> {
     body: JSON.stringify(payload),
   });
 
-  return handleResponse(res);
+  return handleResponse<AuthResponse>(res);
 }
 
 export async function register(payload: RegisterPayload): Promise<AuthResponse> {
@@ -62,5 +71,36 @@ export async function register(payload: RegisterPayload): Promise<AuthResponse> 
     body: JSON.stringify(payload),
   });
 
-  return handleResponse(res);
+  return handleResponse<AuthResponse>(res);
+}
+
+function authHeaders(): HeadersInit {
+  try {
+    const raw = localStorage.getItem("mb_auth");
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    if (!parsed.token) return {};
+    return { Authorization: `Bearer ${parsed.token}` };
+  } catch {
+    return {};
+  }
+}
+
+export async function getAllUsers(): Promise<User[]> {
+  // Usamos la ruta definida en AuthController (/api/auth/users)
+  const res = await fetch(`${API.auth}/users`, {
+    method: "GET",
+    headers: { ...authHeaders() },
+  });
+  return handleResponse<User[]>(res);
+}
+
+export async function deleteUser(id: number): Promise<void> {
+  const res = await fetch(`${API.auth}/users/${id}`, {
+    method: "DELETE",
+    headers: {
+      ...authHeaders(),
+    },
+  });
+  await handleResponse(res);
 }
